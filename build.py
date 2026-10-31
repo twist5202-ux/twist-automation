@@ -449,6 +449,11 @@ def main():
         n = sum(1 for f in dst.rglob("*") if f.is_file())
         print(f"  ok  {store}/  ({n} file disalin)")
 
+    # Copy standalone HTML files dari root repo ke output
+    for html_file in ROOT.glob("*.html"):
+        shutil.copy2(html_file, OUT / html_file.name)
+        print(f"  ok  {html_file.name}  ({html_file.stat().st_size:,} bytes)")
+
     (OUT / "index.html").write_text(build_index(entries), encoding="utf-8")
     total = sum(f.stat().st_size for f in OUT.rglob("*") if f.is_file())
     print(f"\n  index.html + {len(entries)} writeup + portfolio + n8n + assets/style.css")
