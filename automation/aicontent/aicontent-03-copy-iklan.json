@@ -1,5 +1,5 @@
 {
-  "name": "AICONTENT 03 — Copy Iklan Multi-Variasi (A/B Test Ready)",
+  "name": "AICONTENT 03 — Copy Ad Multi-Variant (A/B Test Ready)",
   "nodes": [
     {
       "parameters": {
@@ -8,7 +8,7 @@
         "options": {}
       },
       "id": "n1",
-      "name": "Request Copy Iklan",
+      "name": "Request Ad Copy",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
@@ -19,7 +19,7 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst b = $input.first().json.body || $input.first().json;\nreturn [{ json: {\n  produk: b.produk || 'Produk',\n  manfaat: b.manfaat || '-',\n  target: b.target || 'UMKM Indonesia',\n  harga: b.harga || '-',\n  platform: b.platform || 'Meta Ads'\n}}];\n"
+        "jsCode": "\nconst b = $input.first().json.body || $input.first().json;\nreturn [{ json: {\n  product: b.product || 'Product',\n  manfaat: b.manfaat || '-',\n  target: b.target || 'UMKM Indonesia',\n  price: b.price || '-',\n  platform: b.platform || 'Meta Ads'\n}}];\n"
       },
       "id": "n2",
       "name": "Normalize Brief",
@@ -29,18 +29,18 @@
         -60,
         300
       ],
-      "notes": "Samakan brief iklan."
+      "notes": "Samakan brief ad."
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "GANTI_BASE_URL_AI/chat/completions",
+        "url": "REPLACE_AI_BASE_URL/chat/completions",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             {
               "name": "Authorization",
-              "value": "Bearer GANTI_API_KEY_AI"
+              "value": "Bearer REPLACE_AI_API_KEY"
             },
             {
               "name": "Content-Type",
@@ -51,13 +51,13 @@
         "sendBody": true,
         "contentType": "json",
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ model: 'GANTI_MODEL_AI', messages: [{ role: 'system', content: Kamu direct-response copywriter. Buat 3 variasi copy iklan yang beda angle: (A) masalah-solusi, (B) social proof, (C) urgency/penawaran. Tiap variasi: headline maksimal 8 kata, body 2-3 kalimat, CTA jelas. Bahasa Indonesia. Maksimal 80 kata per variasi. }], temperature: 0.7, max_tokens: 500 }) }}",
+        "jsonBody": "={{ JSON.stringify({ model: 'REPLACE_MODEL_AI', messages: [{ role: 'system', content: You are a direct-response copywriter. Write 3 ad copy variants with different angles: (A) problem-solution, (B) social proof, (C) urgency/offer. Each variant: headline max 8 words, 2-3 sentences of body, a clear CTA. Use Indonesian. Max 80 words per variant. }], temperature: 0.7, max_tokens: 500 }) }}",
         "options": {
           "timeout": 45000
         }
       },
       "id": "n3",
-      "name": "Generate 3 Variasi",
+      "name": "Generate 3 Variants",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -67,24 +67,24 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst r = $input.first().json;\nconst teks = r.choices?.[0]?.message?.content || r.message?.content || '';\nreturn [{ json: { copy_iklan: teks.trim() } }];\n"
+        "jsCode": "\nconst r = $input.first().json;\nconst text = r.choices?.[0]?.message?.content || r.message?.content || '';\nreturn [{ json: { copy_iklan: text.trim() } }];\n"
       },
       "id": "n4",
-      "name": "Ambil 3 Variasi",
+      "name": "Fetch 3 Variants",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         420,
         300
       ],
-      "notes": "Ekstrak variasi copy dari respons AI."
+      "notes": "Ekstrak variant copy from respons AI."
     },
     {
       "parameters": {
         "operation": "append",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -99,7 +99,7 @@
         "options": {}
       },
       "id": "n5",
-      "name": "Simpan Copy",
+      "name": "Save Copy",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
@@ -116,7 +116,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -126,18 +126,18 @@
           "parameters": [
             {
               "name": "target",
-              "value": "GANTI_NOMOR_WA_ADMIN"
+              "value": "REPLACE_ADMIN_WHATSAPP_NUMBER"
             },
             {
               "name": "message",
-              "value": "COPY IKLAN — 3 VARIASI 🎯\\n======================\\n\\n{{$('Ambil 3 Variasi').first().json.copy_iklan}}\\n\\nTes ketiganya, yang menang naikkan budget."
+              "value": "AD COPY — 3 VARIANTS 🎯\\n======================\\n\\n{{$('Fetch 3 Variants').first().json.copy_iklan}}\\n\\nTes ketiganya, that menang naikkan budget."
             }
           ]
         },
         "options": {}
       },
       "id": "n6",
-      "name": "Kirim ke Admin",
+      "name": "Send to Admin",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -147,7 +147,7 @@
     }
   ],
   "connections": {
-    "Request Copy Iklan": {
+    "Request Ad Copy": {
       "main": [
         [
           {
@@ -162,40 +162,40 @@
       "main": [
         [
           {
-            "node": "Generate 3 Variasi",
+            "node": "Generate 3 Variants",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Generate 3 Variasi": {
+    "Generate 3 Variants": {
       "main": [
         [
           {
-            "node": "Ambil 3 Variasi",
+            "node": "Fetch 3 Variants",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Ambil 3 Variasi": {
+    "Fetch 3 Variants": {
       "main": [
         [
           {
-            "node": "Simpan Copy",
+            "node": "Save Copy",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Simpan Copy": {
+    "Save Copy": {
       "main": [
         [
           {
-            "node": "Kirim ke Admin",
+            "node": "Send to Admin",
             "type": "main",
             "index": 0
           }

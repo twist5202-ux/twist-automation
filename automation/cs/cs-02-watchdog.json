@@ -13,7 +13,7 @@
         }
       },
       "id": "w1",
-      "name": "Cek Tiap 2 Menit",
+      "name": "Check Every 2 Minutes",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
       "position": [
@@ -26,7 +26,7 @@
         "operation": "read",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -37,21 +37,21 @@
         "options": {}
       },
       "id": "w2",
-      "name": "Baca Tab State",
+      "name": "Read State Tab",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
         -180,
         300
       ],
-      "notes": "Baca tab 'State'."
+      "notes": "Read tab 'State'."
     },
     {
       "parameters": {
         "operation": "read",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -62,28 +62,28 @@
         "options": {}
       },
       "id": "w3",
-      "name": "Baca Tab History",
+      "name": "Read History Tab",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
         -180,
         460
       ],
-      "notes": "Baca tab 'History'."
+      "notes": "Read tab 'History'."
     },
     {
       "parameters": {
-        "jsCode": "\nconst rows = $(\"Baca Tab State\").all().map(r => r.json);\nconst hist = $(\"Baca Tab History\").all().map(r => r.json);\nconst now = Date.now();\nconst MENIT = GANTI_MENIT_AUTO_TUTUP;   // ganti angka, default 15\n\n// cari pesan customer terakhir per nomor\nconst lastCust = {};\nfor (const h of hist) {\n  if ((h.dari || \"\") !== \"customer\") continue;\n  const p = String(h.phone || \"\").replace(/[^0-9]/g, \"\");\n  const t = new Date(h.waktu).getTime();\n  if (isNaN(t)) continue;\n  if (!lastCust[p] || t > lastCust[p]) lastCust[p] = t;\n}\n\nconst autoTutup = rows.filter(r => {\n  if ((r.mode || \"ai\") !== \"human\") return false;\n  const p = String(r.phone || \"\").replace(/[^0-9]/g, \"\");\n  const last = lastCust[p];\n  if (!last) return false;                       // gak ada data -> skip\n  const diam = (now - last) / 60000;\n  return diam >= MENIT;\n}).map(r => {\n  const p = String(r.phone || \"\").replace(/[^0-9]/g, \"\");\n  const diam = Math.round((now - lastCust[p]) / 60000);\n  return { json: { phone: p, menit_diam: diam, auto_tutup: true } };\n});\n\nreturn autoTutup;\n"
+        "jsCode": "\nconst rows = $(\"Read State Tab\").all().map(r => r.json);\nconst history = $(\"Read History Tab\").all().map(r => r.json);\nconst now = Date.now();\nconst MINUTES = REPLACE_AUTO_CLOSE_MINUTES;   // change the number, default 15\n\n// find the last customer message per number\nconst lastCustomer = {};\nfor (const h of history) {\n  if ((h.from || \"\") !== \"customer\") continue;\n  const p = String(h.phone || \"\").replace(/[^0-9]/g, \"\");\n  const t = new Date(h.time).getTime();\n  if (isNaN(t)) continue;\n  if (!lastCustomer[p] || t > lastCustomer[p]) lastCustomer[p] = t;\n}\n\nconst autoClose = rows.filter(r => {\n  if ((r.mode || \"ai\") !== \"human\") return false;\n  const p = String(r.phone || \"\").replace(/[^0-9]/g, \"\");\n  const last = lastCustomer[p];\n  if (!last) return false;                       // no data -> skip\n  const idle = (now - last) / 60000;\n  return idle >= MINUTES;\n}).map(r => {\n  const p = String(r.phone || \"\").replace(/[^0-9]/g, \"\");\n  const idle = Math.round((now - lastCustomer[p]) / 60000);\n  return { json: { phone: p, idle_minutes: idle, auto_close: true } };\n});\n\nreturn autoClose;\n"
       },
       "id": "w4",
-      "name": "Cek Auto-Tutup",
+      "name": "Check Auto-Close",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         40,
         300
       ],
-      "notes": "Human-mode session yang customer-nya diam >= threshold -> tutup."
+      "notes": "Human-mode session that customer-the idle >= threshold -> tutup."
     },
     {
       "parameters": {
@@ -96,8 +96,8 @@
           "conditions": [
             {
               "id": "c1",
-              "leftValue": "={{ $json.menit_diam }}",
-              "rightValue": "GANTI_MENIT_AUTO_TUTUP",
+              "leftValue": "={{ $json.idle_minutes }}",
+              "rightValue": "REPLACE_AUTO_CLOSE_MINUTES",
               "operator": {
                 "type": "number",
                 "operation": "gte"
@@ -108,7 +108,7 @@
         }
       },
       "id": "w5",
-      "name": "Ada yang Perlu Auto-Tutup?",
+      "name": "Anything Need Auto-Close?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
@@ -121,7 +121,7 @@
         "operation": "update",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -140,14 +140,14 @@
         "options": {}
       },
       "id": "w6",
-      "name": "Auto-Tutup: Set Mode AI",
+      "name": "Auto-Close: Set AI Mode",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
         480,
         220
       ],
-      "notes": "Customer diam -> sesi ditutup otomatis, AI aktif lagi."
+      "notes": "Customer idle -> session closed automatic, AI active currently."
     },
     {
       "parameters": {
@@ -158,7 +158,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -168,32 +168,32 @@
           "parameters": [
             {
               "name": "target",
-              "value": "GANTI_NOMOR_WA_ADMIN"
+              "value": "REPLACE_ADMIN_WHATSAPP_NUMBER"
             },
             {
               "name": "message",
-              "value": "SESI OTOMATIS DITUTUP\\n=====================\\nDari        : {{$json.phone}}\\nDiam        : {{$json.menit_diam}} menit\\nStatus      : mode kembali ke AI\\n\\nCustomer gak bales dalam GANTI_MENIT_AUTO_TUTUP menit, jadi sesi ditutup otomatis. Kalau customer chat lagi, AI yang jawab."
+              "value": "SESSION AUTO-CLOSED\\n=====================\\nDari        : {{$json.phone}}\\nIdle       : {{$json.idle_minutes}} minutes\\nStatus     : mode switched back to AI\\n\\nThe customer did not reply within REPLACE_AUTO_CLOSE_MINUTES minutes, so the session was closed automatically. If the customer messages again, the AI will reply."
             }
           ]
         },
         "options": {}
       },
       "id": "w7",
-      "name": "Notif Admin Auto-Tutup",
+      "name": "Notify Admin of Auto-Close",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
         700,
         220
       ],
-      "notes": "Gateway WhatsApp (Fonnte). Ganti URL kalau pakai Wablas/MPWA."
+      "notes": "Gateway WhatsApp (Fonnte). Ganti URL if pakai Wablas/MPWA."
     },
     {
       "parameters": {
         "operation": "append",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -208,28 +208,28 @@
         "options": {}
       },
       "id": "w8",
-      "name": "Catat History (Auto-Tutup)",
+      "name": "Log History (Auto-Close)",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
         920,
         220
       ],
-      "notes": "Tambah baris ke tab 'History'."
+      "notes": "Add baris ke tab 'History'."
     },
     {
       "parameters": {
-        "jsCode": "\nconst rows = $(\"Baca Tab State\").all().map(r => r.json);\nconst now = Date.now();\n\nconst perlu = rows.filter(r => {\n  if ((r.mode || \"ai\") !== \"human\") return false;\n  if (!r.escalated_at) return false;\n  const esc = new Date(r.escalated_at).getTime();\n  if (isNaN(esc)) return false;\n  const menit = (now - esc) / 60000;\n\n  const lhr = r.last_human_reply ? new Date(r.last_human_reply).getTime() : 0;\n  const sudahBales = lhr > esc;\n\n  const rem = r.last_reminder ? new Date(r.last_reminder).getTime() : 0;\n  const baruReminder = (now - rem) / 60000 < 10;\n\n  return !sudahBales && menit >= 10 && !baruReminder;\n}).map(r => {\n  const esc = new Date(r.escalated_at).getTime();\n  return {\n    json: {\n      phone: String(r.phone || \"\").replace(/[^0-9]/g, \"\"),\n      menit_tunggu: Math.round((now - esc) / 60000),\n      catatan: r.catatan || \"-\"\n    }\n  };\n});\n\nreturn perlu;\n"
+        "jsCode": "\nconst rows = $(\"Read State Tab\").all().map(r => r.json);\nconst now = Date.now();\n\nconst need = rows.filter(r => {\n  if ((r.mode || \"ai\") !== \"human\") return false;\n  if (!r.escalated_at) return false;\n  const esc = new Date(r.escalated_at).getTime();\n  if (isNaN(esc)) return false;\n  const minutes = (now - esc) / 60000;\n\n  const lastReply = r.last_human_reply ? new Date(r.last_human_reply).getTime() : 0;\n  const hasReplied = lhr > esc;\n\n  const rem = r.last_reminder ? new Date(r.last_reminder).getTime() : 0;\n  const recentReminder = (now - rem) / 60000 < 10;\n\n  return !hasReplied && minutes >= 10 && !recentReminder;\n}).map(r => {\n  const esc = new Date(r.escalated_at).getTime();\n  return {\n    json: {\n      phone: String(r.phone || \"\").replace(/[^0-9]/g, \"\"),\n      wait_minutes: Math.round((now - esc) / 60000),\n      note: r.note || \"-\"\n    }\n  };\n});\n\nreturn need;\n"
       },
       "id": "w9",
-      "name": "Cek Admin Lupa Bales",
+      "name": "Check Admin Missed Reply",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         40,
         620
       ],
-      "notes": "Cari sesi human-mode yang admin belum bales >= 10 menit."
+      "notes": "Cari session human-mode that admin not yet reply >= 10 minute."
     },
     {
       "parameters": {
@@ -242,7 +242,7 @@
           "conditions": [
             {
               "id": "c2",
-              "leftValue": "={{ $json.menit_tunggu }}",
+              "leftValue": "={{ $json.wait_minutes }}",
               "rightValue": "10",
               "operator": {
                 "type": "number",
@@ -254,7 +254,7 @@
         }
       },
       "id": "w10",
-      "name": "Ada yang Perlu Diingatkan?",
+      "name": "Anything Need Reminder?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
@@ -271,7 +271,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -281,32 +281,32 @@
           "parameters": [
             {
               "name": "target",
-              "value": "GANTI_NOMOR_WA_ADMIN"
+              "value": "REPLACE_ADMIN_WHATSAPP_NUMBER"
             },
             {
               "name": "message",
-              "value": "PENGINGAT — CUSTOMER MENUNGGU\\n=============================\\nDari   : {{$json.phone}}\\nSudah menunggu: {{$json.menit_tunggu}} menit\\nCatatan: {{$json.catatan}}\\n\\nBalas pesan customer tadi, atau ketik 'tutup' kalau sudah selesai."
+              "value": "REMINDER — CUSTOMER WAITING\\n=============================\\nFrom   : {{$json.phone}}\\nWaiting for: {{$json.wait_minutes}} minutes\\nCatatan: {{$json.note}}\\n\\nReply to the customer's last message, or type 'tutup' (or 'close') if it is already handled."
             }
           ]
         },
         "options": {}
       },
       "id": "w11",
-      "name": "Ingatkan Admin Lagi",
+      "name": "Remind Admin Again",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
         480,
         540
       ],
-      "notes": "Gateway WhatsApp (Fonnte). Ganti URL kalau pakai Wablas/MPWA."
+      "notes": "Gateway WhatsApp (Fonnte). Ganti URL if pakai Wablas/MPWA."
     },
     {
       "parameters": {
         "operation": "update",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -332,7 +332,7 @@
         700,
         540
       ],
-      "notes": "Update baris di tab 'State', cocokkan kolom 'phone'."
+      "notes": "Update baris di tab 'State', cocokkan column 'phone'."
     },
     {
       "parameters": {
@@ -345,7 +345,7 @@
           "conditions": [
             {
               "id": "c3",
-              "leftValue": "={{ $json.menit_tunggu }}",
+              "leftValue": "={{ $json.wait_minutes }}",
               "rightValue": "30",
               "operator": {
                 "type": "number",
@@ -357,7 +357,7 @@
         }
       },
       "id": "w13",
-      "name": "Tunggu > 30 Menit?",
+      "name": "Wait > 30 Minute?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
@@ -374,7 +374,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -384,30 +384,30 @@
           "parameters": [
             {
               "name": "target",
-              "value": "={{ $('Cek Admin Lupa Bales').first().json.phone }}"
+              "value": "={{ $('Check Admin Missed Reply').first().json.phone }}"
             },
             {
               "name": "message",
-              "value": "Mohon maaf menunggu, tim kami sedang menangani pesan lo. Kami balas secepatnya ya. Terima kasih kesabaran."
+              "value": "Sorry for the wait — our team is handling your message right now. We will reply as soon as possible. Thank you for your patience."
             }
           ]
         },
         "options": {}
       },
       "id": "w14",
-      "name": "Pesan Customer Masih Menunggu",
+      "name": "Customer Still Waiting Message",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
         480,
         780
       ],
-      "notes": "Gateway WhatsApp (Fonnte). Ganti URL kalau pakai Wablas/MPWA."
+      "notes": "Gateway WhatsApp (Fonnte). Ganti URL if pakai Wablas/MPWA."
     },
     {
       "parameters": {},
       "id": "w15",
-      "name": "Selesai",
+      "name": "Done",
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
       "position": [
@@ -417,121 +417,121 @@
     }
   ],
   "connections": {
-    "Cek Tiap 2 Menit": {
+    "Check Every 2 Minutes": {
       "main": [
         [
           {
-            "node": "Baca Tab State",
+            "node": "Read State Tab",
             "type": "main",
             "index": 0
           },
           {
-            "node": "Baca Tab History",
+            "node": "Read History Tab",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Baca Tab State": {
+    "Read State Tab": {
       "main": [
         [
           {
-            "node": "Cek Auto-Tutup",
+            "node": "Check Auto-Close",
             "type": "main",
             "index": 0
           },
           {
-            "node": "Cek Admin Lupa Bales",
+            "node": "Check Admin Missed Reply",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Baca Tab History": {
+    "Read History Tab": {
       "main": [
         [
           {
-            "node": "Cek Auto-Tutup",
+            "node": "Check Auto-Close",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Cek Auto-Tutup": {
+    "Check Auto-Close": {
       "main": [
         [
           {
-            "node": "Ada yang Perlu Auto-Tutup?",
+            "node": "Anything Need Auto-Close?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Ada yang Perlu Auto-Tutup?": {
+    "Anything Need Auto-Close?": {
       "main": [
         [
           {
-            "node": "Auto-Tutup: Set Mode AI",
+            "node": "Auto-Close: Set AI Mode",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Auto-Tutup: Set Mode AI": {
+    "Auto-Close: Set AI Mode": {
       "main": [
         [
           {
-            "node": "Notif Admin Auto-Tutup",
+            "node": "Notify Admin of Auto-Close",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Notif Admin Auto-Tutup": {
+    "Notify Admin of Auto-Close": {
       "main": [
         [
           {
-            "node": "Catat History (Auto-Tutup)",
+            "node": "Log History (Auto-Close)",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Cek Admin Lupa Bales": {
+    "Check Admin Missed Reply": {
       "main": [
         [
           {
-            "node": "Ada yang Perlu Diingatkan?",
+            "node": "Anything Need Reminder?",
             "type": "main",
             "index": 0
           },
           {
-            "node": "Tunggu > 30 Menit?",
+            "node": "Wait > 30 Minute?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Ada yang Perlu Diingatkan?": {
+    "Anything Need Reminder?": {
       "main": [
         [
           {
-            "node": "Ingatkan Admin Lagi",
+            "node": "Remind Admin Again",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Ingatkan Admin Lagi": {
+    "Remind Admin Again": {
       "main": [
         [
           {
@@ -542,22 +542,22 @@
         ]
       ]
     },
-    "Tunggu > 30 Menit?": {
+    "Wait > 30 Minute?": {
       "main": [
         [
           {
-            "node": "Pesan Customer Masih Menunggu",
+            "node": "Customer Still Waiting Message",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Pesan Customer Masih Menunggu": {
+    "Customer Still Waiting Message": {
       "main": [
         [
           {
-            "node": "Selesai",
+            "node": "Done",
             "type": "main",
             "index": 0
           }

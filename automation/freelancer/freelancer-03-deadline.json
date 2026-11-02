@@ -1,5 +1,5 @@
 {
-  "name": "FREELANCER 03 — Project Deadline Tracker (Jangan Telat Delivery)",
+  "name": "FREELANCER 03 — Project Deadline Tracker (Do not Late Delivery)",
   "nodes": [
     {
       "parameters": {
@@ -13,7 +13,7 @@
         }
       },
       "id": "n1",
-      "name": "Cek Tiap Pagi 08:00",
+      "name": "Check Every Morning at 08:00",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.1,
       "position": [
@@ -26,7 +26,7 @@
         "operation": "read",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -37,7 +37,7 @@
         "options": {}
       },
       "id": "n2",
-      "name": "Baca Project Aktif",
+      "name": "Read Active Projects",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
@@ -47,10 +47,10 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst rows = $input.all().map(r => r.json);\nconst now = new Date();\nreturn rows.filter(r => {\n  if (r.status === 'selesai') return false;\n  const dl = new Date(r.deadline);\n  const sisa = Math.ceil((dl - now) / 86400000);\n  return sisa <= 2;\n}).map(r => {\n  const sisa = Math.ceil((new Date(r.deadline) - now) / 86400000);\n  return { json: { ...r, sisa_hari: sisa } };\n});\n"
+        "jsCode": "\nconst rows = $input.all().map(r => r.json);\nconst now = new Date();\nreturn rows.filter(r => {\n  if (r.status === 'done') return false;\n  const dl = new Date(r.deadline);\n  const sisa = Math.ceil((dl - now) / 86400000);\n  return sisa <= 2;\n}).map(r => {\n  const sisa = Math.ceil((new Date(r.deadline) - now) / 86400000);\n  return { json: { ...r, sisa_hari: sisa } };\n});\n"
       },
       "id": "n3",
-      "name": "Filter Deadline Dekat",
+      "name": "Filter Near Deadline",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -67,7 +67,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -77,11 +77,11 @@
           "parameters": [
             {
               "name": "target",
-              "value": "GANTI_NOMOR_WA_ADMIN"
+              "value": "REPLACE_ADMIN_WHATSAPP_NUMBER"
             },
             {
               "name": "message",
-              "value": "⏰ DEADLINE DEKAT\\n\\nProject : {{$json.nama_project}}\\nKlien   : {{$json.klien}}\\nDeadline: {{$json.deadline}}\\nSisa    : {{$json.sisa_hari}} hari\\nProgress: {{$json.progress}}\\n\\nJangan sampe telat delivery!"
+              "value": "⏰ DEADLINE APPROACHING\\n\\nProject  : {{$json.nama_project}}\\nClient   : {{$json.klien}}\\nDeadline : {{$json.deadline}}\\nDays left: {{$json.sisa_hari}} days\\nProgress : {{$json.progress}}\\n\\nDo not miss the delivery!"
             }
           ]
         },
@@ -98,29 +98,29 @@
     }
   ],
   "connections": {
-    "Cek Tiap Pagi 08:00": {
+    "Check Every Morning at 08:00": {
       "main": [
         [
           {
-            "node": "Baca Project Aktif",
+            "node": "Read Active Projects",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Baca Project Aktif": {
+    "Read Active Projects": {
       "main": [
         [
           {
-            "node": "Filter Deadline Dekat",
+            "node": "Filter Near Deadline",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Filter Deadline Dekat": {
+    "Filter Near Deadline": {
       "main": [
         [
           {

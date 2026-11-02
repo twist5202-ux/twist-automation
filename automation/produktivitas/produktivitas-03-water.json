@@ -1,5 +1,5 @@
 {
-  "name": "PRODUKTIVITAS 03 — Water & Break Reminder (Jangan Lupa Minum)",
+  "name": "PRODUKTIVITAS 03 — Water & Break Reminder (Do not Lupa Minum)",
   "nodes": [
     {
       "parameters": {
@@ -13,7 +13,7 @@
         }
       },
       "id": "n1",
-      "name": "Tiap 2 Jam Jam Kerja",
+      "name": "Every 2 Working Hours",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.1,
       "position": [
@@ -23,10 +23,10 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst pesan = [\n  '💧 Minum air dulu! Udah 2 jam lo gak minum.',\n  '🧴 Istirahat sebentar. Liat jauh 20 detik buat mata.',\n  '🚶 Jalan sebentar. Jangan duduk terus.',\n  '💧 Minum air. Tubuh lo butuh.',\n  '🧘 Stretch 1 menit. Leher & bahu lo tegang.',\n  '💧 Air lagi dong. Target 8 gelas sehari.',\n];\nconst i = Math.floor(Math.random() * pesan.length);\nreturn [{ json: { pesan: pesan[i] } }];\n"
+        "jsCode": "\nconst message = [\n  '💧 Drink some water! It has been 2 hours.',\n  '🧴 Rest your eyes. Look at something 20 feet away for 20 seconds.',\n  '🚶 Walk a little. Do not sit the whole time.',\n  '💧 Drink water. Your body needs it.',\n  '🧘 Stretch for 1 minute. Your neck and shoulders are tense.',\n  '💧 Water please now. Target 8 glasses a day.',\n];\nconst i = Math.floor(Math.random() * message.length);\nreturn [{ json: { message: message[i] } }];\n"
       },
       "id": "n2",
-      "name": "Pesan Acak",
+      "name": "Random Message",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -43,7 +43,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -53,18 +53,18 @@
           "parameters": [
             {
               "name": "target",
-              "value": "GANTI_NOMOR_WA_ADMIN"
+              "value": "REPLACE_ADMIN_WHATSAPP_NUMBER"
             },
             {
               "name": "message",
-              "value": "={{$json.pesan}}"
+              "value": "={{$json.message}}"
             }
           ]
         },
         "options": {}
       },
       "id": "n3",
-      "name": "Kirim Pengingat",
+      "name": "Send Reminder",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -74,22 +74,22 @@
     }
   ],
   "connections": {
-    "Tiap 2 Jam Jam Kerja": {
+    "Every 2 Working Hours": {
       "main": [
         [
           {
-            "node": "Pesan Acak",
+            "node": "Random Message",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Pesan Acak": {
+    "Random Message": {
       "main": [
         [
           {
-            "node": "Kirim Pengingat",
+            "node": "Send Reminder",
             "type": "main",
             "index": 0
           }

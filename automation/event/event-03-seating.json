@@ -8,7 +8,7 @@
         "options": {}
       },
       "id": "n1",
-      "name": "Check-in Tamu",
+      "name": "Guest Check-In",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
@@ -19,24 +19,24 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst b = $input.first().json.body || $input.first().json;\nconst nama = String(b.nama || '').toLowerCase().trim();\nconst rows = $('Baca Daftar Tamu').all().map(r => r.json);\n\nconst ketemu = rows.find(r =>\n  String(r.nama || '').toLowerCase().trim() === nama);\n\nif (!ketemu) {\n  return [{ json: { ditemukan: false, nama: b.nama } }];\n}\nreturn [{ json: { ditemukan: true, ...ketemu } }];\n"
+        "jsCode": "\nconst b = $input.first().json.body || $input.first().json;\nconst name = String(b.name || '').toLowerCase().trim();\nconst rows = $('Read List Guest').all().map(r => r.json);\n\nconst found = rows.find(r =>\n  String(r.name || '').toLowerCase().trim() === name);\n\nif (!found) {\n  return [{ json: { ditemukan: false, name: b.name } }];\n}\nreturn [{ json: { ditemukan: true, ...found } }];\n"
       },
       "id": "n2",
-      "name": "Cek Tamu Terdaftar",
+      "name": "Check Registered Guests",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         -60,
         300
       ],
-      "notes": "Cocokkan nama tamu dengan daftar RSVP."
+      "notes": "Cocokkan name tamu dengan list RSVP."
     },
     {
       "parameters": {
         "operation": "read",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -47,7 +47,7 @@
         "options": {}
       },
       "id": "n3",
-      "name": "Baca Daftar Tamu",
+      "name": "Read List Guest",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
@@ -78,7 +78,7 @@
         }
       },
       "id": "n4",
-      "name": "Terdaftar?",
+      "name": "Registered?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
@@ -95,7 +95,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -109,14 +109,14 @@
             },
             {
               "name": "message",
-              "value": "Selamat datang, {{$json.nama}}! 🎊\\n\\nCheck-in berhasil.\\nMeja : {{$json.meja || 'akan diinformasikan'}}\\nNomor doorprize: {{$json.nomor_doorprize || '-'}}\\n\\nSelamat menikmati acara 💛"
+              "value": "Welcome, {{$json.name}}! 🎊\\n\\nCheck-in successful.\\nTable : {{$json.meja || 'to be announced'}}\\nNomor doorprize: {{$json.nomor_doorprize || '-'}}\\n\\nEnjoy the event 💛"
             }
           ]
         },
         "options": {}
       },
       "id": "n5",
-      "name": "Selamat Datang",
+      "name": "Welcome",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -133,7 +133,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -143,18 +143,18 @@
           "parameters": [
             {
               "name": "target",
-              "value": "GANTI_NOMOR_WA_ADMIN"
+              "value": "REPLACE_ADMIN_WHATSAPP_NUMBER"
             },
             {
               "name": "message",
-              "value": "TAMU TIDAK TERDAFTAR ⚠️\\n======================\\nNama : {{$json.nama}}\\n\\nPerlu dicek manual di meja registrasi."
+              "value": "GUEST NOT REGISTERED ⚠️\\n======================\\nNama : {{$json.name}}\\n\\nNeeds a manual check at the registration desk."
             }
           ]
         },
         "options": {}
       },
       "id": "n6",
-      "name": "Notif Panitia (Tamu Tak Terdaftar)",
+      "name": "Notify Committee (Unregistered Guest)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -167,7 +167,7 @@
         "operation": "append",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -182,7 +182,7 @@
         "options": {}
       },
       "id": "n7",
-      "name": "Catat Kehadiran",
+      "name": "Log Attendance",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
@@ -202,7 +202,7 @@
         }
       },
       "id": "n8",
-      "name": "Draw Doorprize Tiap Acara Selesai",
+      "name": "Draw Doorprize When Event Ends",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
       "position": [
@@ -215,7 +215,7 @@
         "operation": "read",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -226,7 +226,7 @@
         "options": {}
       },
       "id": "n9",
-      "name": "Baca Yang Hadir",
+      "name": "Read Attendees",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
@@ -236,17 +236,17 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst rows = $input.all().map(r => r.json);\nconst pool = rows.filter(r => r.nama);\nif (pool.length < 3) return [{ json: { skip: true } }];\n\nconst pemenang = [];\nconst salinan = [...pool];\nfor (let i = 0; i < 3 && salinan.length > 0; i++) {\n  const idx = Math.floor(Math.random() * salinan.length);\n  pemenang.push(salinan.splice(idx, 1)[0]);\n}\n\nlet out = 'PEMENANG DOORPRIZE 🎁\\n===================\\n\\n';\npemenang.forEach((p, i) => {\n  out += (i + 1) + '. ' + p.nama + ' — ' + (p.meja || 'meja -') + '\\n';\n});\nreturn [{ json: { skip: false, hasil: out } }];\n"
+        "jsCode": "\nconst rows = $input.all().map(r => r.json);\nconst pool = rows.filter(r => r.name);\nif (pool.length < 3) return [{ json: { skip: true } }];\n\nconst pemenang = [];\nconst salinan = [...pool];\nfor (let i = 0; i < 3 && salinan.length > 0; i++) {\n  const idx = Math.floor(Math.random() * salinan.length);\n  pemenang.push(salinan.splice(idx, 1)[0]);\n}\n\nlet out = 'PEMENANG DOORPRIZE 🎁\\n===================\\n\\n';\npemenang.forEach((p, i) => {\n  out += (i + 1) + '. ' + p.name + ' — ' + (p.meja || 'meja -') + '\\n';\n});\nreturn [{ json: { skip: false, result: out } }];\n"
       },
       "id": "n10",
-      "name": "Undi 3 Pemenang",
+      "name": "Draw 3 Winners",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         660,
         620
       ],
-      "notes": "Undi 3 pemenang acak dari yang hadir."
+      "notes": "Undi 3 pemenang acak from that hadir."
     },
     {
       "parameters": {
@@ -257,7 +257,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -267,18 +267,18 @@
           "parameters": [
             {
               "name": "target",
-              "value": "GANTI_NOMOR_WA_ADMIN"
+              "value": "REPLACE_ADMIN_WHATSAPP_NUMBER"
             },
             {
               "name": "message",
-              "value": "={{ $('Undi 3 Pemenang').first().json.hasil }}"
+              "value": "={{ $('Draw 3 Winners').first().json.result }}"
             }
           ]
         },
         "options": {}
       },
       "id": "n11",
-      "name": "Umumkan Pemenang",
+      "name": "Announce Winners",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -288,93 +288,93 @@
     }
   ],
   "connections": {
-    "Check-in Tamu": {
+    "Guest Check-In": {
       "main": [
         [
           {
-            "node": "Cek Tamu Terdaftar",
+            "node": "Check Registered Guests",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Baca Daftar Tamu": {
+    "Read List Guest": {
       "main": [
         [
           {
-            "node": "Cek Tamu Terdaftar",
+            "node": "Check Registered Guests",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Cek Tamu Terdaftar": {
+    "Check Registered Guests": {
       "main": [
         [
           {
-            "node": "Terdaftar?",
+            "node": "Registered?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Terdaftar?": {
+    "Registered?": {
       "main": [
         [
           {
-            "node": "Selamat Datang",
+            "node": "Welcome",
             "type": "main",
             "index": 0
           },
           {
-            "node": "Notif Panitia (Tamu Tak Terdaftar)",
+            "node": "Notify Committee (Unregistered Guest)",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Selamat Datang": {
+    "Welcome": {
       "main": [
         [
           {
-            "node": "Catat Kehadiran",
+            "node": "Log Attendance",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Draw Doorprize Tiap Acara Selesai": {
+    "Draw Doorprize When Event Ends": {
       "main": [
         [
           {
-            "node": "Baca Yang Hadir",
+            "node": "Read Attendees",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Baca Yang Hadir": {
+    "Read Attendees": {
       "main": [
         [
           {
-            "node": "Undi 3 Pemenang",
+            "node": "Draw 3 Winners",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Undi 3 Pemenang": {
+    "Draw 3 Winners": {
       "main": [
         [
           {
-            "node": "Umumkan Pemenang",
+            "node": "Announce Winners",
             "type": "main",
             "index": 0
           }

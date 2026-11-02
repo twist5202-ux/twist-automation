@@ -1,5 +1,5 @@
 {
-  "name": "FREELANCER 01 — Invoice Reminder (Klien Telat Bayar)",
+  "name": "FREELANCER 01 — Invoice Reminder (Klien Late Bayar)",
   "nodes": [
     {
       "parameters": {
@@ -13,7 +13,7 @@
         }
       },
       "id": "n1",
-      "name": "Cek Tiap Pagi 09:00",
+      "name": "Check Every Morning at 09:00",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.1,
       "position": [
@@ -26,7 +26,7 @@
         "operation": "read",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -37,7 +37,7 @@
         "options": {}
       },
       "id": "n2",
-      "name": "Baca Invoice Belum Lunas",
+      "name": "Read Unpaid Invoices",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
@@ -47,10 +47,10 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst rows = $input.all().map(r => r.json);\nconst now = new Date();\nconst telat = rows.filter(r => {\n  if (r.status === 'lunas') return false;\n  const tempo = new Date(r.jatuh_tempo);\n  return tempo <= now;\n});\nreturn telat.map(r => {\n  const hari = Math.floor((now - new Date(r.jatuh_tempo)) / 86400000);\n  return { json: { ...r, hari_telat: hari } };\n});\n"
+        "jsCode": "\nconst rows = $input.all().map(r => r.json);\nconst now = new Date();\nconst overdue = rows.filter(r => {\n  if (r.status === 'paid') return false;\n  const date = new Date(r.jatuh_tempo);\n  return date <= now;\n});\nreturn overdue.map(r => {\n  const daysLate = Math.floor((now - new Date(r.jatuh_tempo)) / 86400000);\n  return { json: { ...r, hari_telat: daysLate } };\n});\n"
       },
       "id": "n3",
-      "name": "Filter Jatuh Tempo",
+      "name": "Filter Due Date",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -67,7 +67,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -77,18 +77,18 @@
           "parameters": [
             {
               "name": "target",
-              "value": "GANTI_NOMOR_WA_ADMIN"
+              "value": "REPLACE_ADMIN_WHATSAPP_NUMBER"
             },
             {
               "name": "message",
-              "value": "Halo {{$json.nama_klien}} 👋\\n\\nMengingatkan invoice *{{$json.no_invoice}}*:\\n\\nProject  : {{$json.project}}\\nNilai    : Rp {{$json.nilai}}\\nJatuh tempo: {{$json.jatuh_tempo}}\\nTelat    : {{$json.hari_telat}} hari\\n\\nMohon segera diproses. Kalau sudah transfer, kirim buktinya ya. Terima kasih 🙏"
+              "value": "Halo {{$json.client_name}} 👋\\n\\nA reminder about invoice *{{$json.no_invoice}}*:\\n\\nProject  : {{$json.project}}\\nAmount   : Rp {{$json.value}}\\nDue date   : {{$json.jatuh_tempo}}\\nOverdue  : {{$json.hari_telat}} days\\n\\nPlease process it as soon as possible. If you have already transferred, send the proof. Thank you 🙏"
             }
           ]
         },
         "options": {}
       },
       "id": "n4",
-      "name": "Ingatkan Klien",
+      "name": "Remind Client",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -101,7 +101,7 @@
         "operation": "append",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -116,7 +116,7 @@
         "options": {}
       },
       "id": "n5",
-      "name": "Catat Reminder Terkirim",
+      "name": "Log Reminder Sent",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
@@ -126,44 +126,44 @@
     }
   ],
   "connections": {
-    "Cek Tiap Pagi 09:00": {
+    "Check Every Morning at 09:00": {
       "main": [
         [
           {
-            "node": "Baca Invoice Belum Lunas",
+            "node": "Read Unpaid Invoices",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Baca Invoice Belum Lunas": {
+    "Read Unpaid Invoices": {
       "main": [
         [
           {
-            "node": "Filter Jatuh Tempo",
+            "node": "Filter Due Date",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Filter Jatuh Tempo": {
+    "Filter Due Date": {
       "main": [
         [
           {
-            "node": "Ingatkan Klien",
+            "node": "Remind Client",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Ingatkan Klien": {
+    "Remind Client": {
       "main": [
         [
           {
-            "node": "Catat Reminder Terkirim",
+            "node": "Log Reminder Sent",
             "type": "main",
             "index": 0
           }

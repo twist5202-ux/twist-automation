@@ -8,19 +8,19 @@
         },
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
           "__rl": true,
-          "value": "Form Responses 1",
+          "value": "Form Responseses 1",
           "mode": "name"
         },
         "event": "rowAdded",
         "options": {}
       },
       "id": "trigger",
-      "name": "Ada Isi Form Baru",
+      "name": "New Form Submission",
       "type": "n8n-nodes-base.googleSheetsTrigger",
       "typeVersion": 1,
       "position": [
@@ -29,14 +29,14 @@
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "GANTI_CREDENTIAL_ID",
+          "id": "REPLACE_CREDENTIAL_ID",
           "name": "Google Sheets UMKM"
         }
       }
     },
     {
       "parameters": {
-        "jsCode": "// Ambil semua field dari form (nama kolom dinamis)\nconst j = $json;\nconst skip = ['Timestamp', 'Waktu', 'Nomor'];\n\nlet isi = '';\nfor (const [k, v] of Object.entries(j)) {\n  if (skip.some(s => k.toLowerCase().includes(s.toLowerCase()))) continue;\n  isi += '*' + k + ':* ' + (v || '-') + '\\n';\n}\n\nconst nama = j['Nama'] || j['Nama Lengkap'] || j['Name'] || 'Pelanggan';\n\nreturn [{\n  json: {\n    notif: '📩 *ORDER BARU DARI FORM*\\n\\nDari: ' + nama + '\\n\\n' + isi + '\\nSegera ditindaklanjuti!',\n    nama: nama,\n    isi_lengkap: isi\n  }\n}];"
+        "jsCode": "// Read every field from the form (column names are dynamic)\nconst j = $json;\nconst skip = ['Timestamp', 'Time', 'Number'];\n\nlet content = '';\nfor (const [k, v] of Object.entries(j)) {\n  if (skip.some(s => k.toLowerCase().includes(s.toLowerCase()))) continue;\n  content += '*' + k + ':* ' + (v || '-') + '\\n';\n}\n\nconst name = j['Name'] || j['Full Name'] || j['Nama'] || 'Customer';\n\nreturn [{\n  json: {\n    notification: '📩 *NEW ORDER FROM FORM*\\n\\nFrom: ' + name + '\\n\\n' + content + '\\nFollow up right away!',\n    name: name,\n    full_content: content\n  }\n}];\n"
       },
       "id": "format",
       "name": "Format Notifikasi",
@@ -56,7 +56,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -66,25 +66,25 @@
           "parameters": [
             {
               "name": "target",
-              "value": "GANTI_NOMOR_WA_ADMIN"
+              "value": "REPLACE_ADMIN_WHATSAPP_NUMBER"
             },
             {
               "name": "message",
-              "value": "={{ $json.notif }}"
+              "value": "={{ $json.notification }}"
             }
           ]
         },
         "options": {}
       },
       "id": "send",
-      "name": "Notifikasi WhatsApp",
+      "name": "WhatsApp Notification",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
         680,
         220
       ],
-      "notes": "Token Fonnte dari dashboard fonnte.com -> Device -> Token. Ganti GANTI_TOKEN_FONNTE.",
+      "notes": "Token Fonnte from dashboard fonnte.com -> Device -> Token. Ganti REPLACE_FONNTE_TOKEN.",
       "notesInFlow": false
     },
     {
@@ -96,7 +96,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -106,30 +106,30 @@
           "parameters": [
             {
               "name": "target",
-              "value": "GANTI_NOMOR_WA_ADMIN"
+              "value": "REPLACE_ADMIN_WHATSAPP_NUMBER"
             },
             {
               "name": "message",
-              "value": "=🔔 *ORDER BARU*\n\nNama: {{ $json.nama }}\n\n{{ $json.isi_lengkap }}\n\n_Balas sekarang sebelum kabur._"
+              "value": "=🔔 *NEW ORDER*\n\nName: {{ $json.name }}\n\n{{ $json.full_content }}\n\n_Reply now before it slips away._"
             }
           ]
         },
         "options": {}
       },
       "id": "send2",
-      "name": "Notifikasi Admin (WhatsApp)",
+      "name": "Notify Admin (WhatsApp)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
         680,
         420
       ],
-      "notes": "Token Fonnte dari dashboard fonnte.com -> Device -> Token. Ganti GANTI_TOKEN_FONNTE.",
+      "notes": "Token Fonnte from dashboard fonnte.com -> Device -> Token. Ganti REPLACE_FONNTE_TOKEN.",
       "notesInFlow": false
     },
     {
       "parameters": {
-        "content": "## UMKM 05 — Google Form → Notifikasi\n\n**Cara pakai:**\n1. Bikin Google Form order (Nama, No HP, Produk, Alamat, dll)\n2. Link ke Google Sheet (Responses → Link to Sheets)\n3. Ganti `GANTI_SPREADSHEET_ID` dengan ID sheet itu\n4. Aktifkan workflow\n\n**Hasil:**\nSetiap ada yang isi form → lo dapat notifikasi WhatsApp dalam **1 menit**.\n\n**Kenapa ini worth buat client:**\n- Google Form gratis, gak perlu website\n- Order masuk langsung kabar, gak perlu cek sheet manual\n- Bisa 2 notifikasi: grup + admin pribadi\n\n**Yang diedit:**\n- `GANTI_SPREADSHEET_ID`\n- `GANTI_NOMOR_WA_ADMIN` (grup/channel)\n- `GANTI_NOMOR_WA_ADMIN` (HP lo)",
+        "content": "## UMKM 05 — Google Form → Notification\n\n**How to use:**\n1. Create a Google Form for orders (Name, Phone, Product, Address, etc.)\n2. Link it to a Google Sheet (Responses → Link to Sheets)\n3. Replace `GANTI_SPREADSHEET_ID` with that sheet ID\n4. Activate the workflow\n\n**Result:**\nEvery form submission → you get a WhatsApp notification within **1 minute**.\n\n**Why this is worth building for a client:**\n- Google Forms is free, no website needed\n- Orders are reported instantly, no manual sheet checking\n- Supports 2 notifications: group + personal admin\n\n**What to edit:**\n- `GANTI_SPREADSHEET_ID`\n- `GANTI_NOMOR_WA_ADMIN` (group/channel)\n- `GANTI_NOMOR_WA_ADMIN` (your phone)",
         "height": 400,
         "width": 620,
         "color": 4
@@ -145,7 +145,7 @@
     }
   ],
   "connections": {
-    "Ada Isi Form Baru": {
+    "New Form Submission": {
       "main": [
         [
           {
@@ -160,12 +160,12 @@
       "main": [
         [
           {
-            "node": "Notifikasi WhatsApp",
+            "node": "WhatsApp Notification",
             "type": "main",
             "index": 0
           },
           {
-            "node": "Notifikasi Admin (WhatsApp)",
+            "node": "Notify Admin (WhatsApp)",
             "type": "main",
             "index": 0
           }

@@ -1,5 +1,5 @@
 {
-  "name": "UMKM 11 — Cart Reminder (Keranjang Ditinggalkan → Follow Up)",
+  "name": "UMKM 11 — Cart Reminder (Cart Ditinggalkan → Follow Up)",
   "nodes": [
     {
       "parameters": {
@@ -13,7 +13,7 @@
         }
       },
       "id": "n1",
-      "name": "Cek Tiap 1 Jam",
+      "name": "Check Every Hour",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.1,
       "position": [
@@ -26,7 +26,7 @@
         "operation": "read",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -37,7 +37,7 @@
         "options": {}
       },
       "id": "n2",
-      "name": "Baca Cart Tertinggal",
+      "name": "Read Abandoned Cart",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
@@ -47,10 +47,10 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst rows = $input.all().map(r => r.json);\nconst now = Date.now();\nconst abandoned = rows.filter(r => {\n  const t = new Date(r.waktu).getTime();\n  const jam = (now - t) / 3600000;\n  return jam >= 3 && r.status === 'cart';\n});\nreturn abandoned.map(r => ({ json: r }));\n"
+        "jsCode": "\nconst rows = $input.all().map(r => r.json);\nconst now = Date.now();\nconst abandoned = rows.filter(r => {\n  const t = new Date(r.time).getTime();\n  const hour = (now - t) / 3600000;\n  return hour >= 3 && r.status === 'cart';\n});\nreturn abandoned.map(r => ({ json: r }));\n"
       },
       "id": "n3",
-      "name": "Filter > 3 Jam & Belum Bayar",
+      "name": "Filter > 3 Hours & Unpaid",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -68,7 +68,7 @@
           "conditions": [
             {
               "id": "n4-c",
-              "leftValue": "={{$json.jam}}",
+              "leftValue": "={{$json.hour}}",
               "rightValue": "3",
               "operator": {
                 "type": "number",
@@ -80,7 +80,7 @@
         }
       },
       "id": "n4",
-      "name": "Sudah > 3 Jam?",
+      "name": "Already > 3 Hours?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
@@ -97,7 +97,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -107,18 +107,18 @@
           "parameters": [
             {
               "name": "target",
-              "value": "GANTI_NOMOR_WA_ADMIN"
+              "value": "REPLACE_ADMIN_WHATSAPP_NUMBER"
             },
             {
               "name": "message",
-              "value": "Halo {{$json.nama}} 👋\\n\\nKami liat lo ninggalin produk di keranjang:\\n*{{$json.produk}}*\\n\\nMasih mau lanjut? Balas pesan ini, kami bantu proses order-nya.\\n\\nAda promo hari ini lho 🎁"
+              "value": "Halo {{$json.name}} 👋\\n\\nWe noticed you left a product in your cart:\\n*{{$json.product}}*\\n\\nStill want to continue? Reply to this message and we will help you complete the order.\\n\\nThere is a promotion running today 🎁"
             }
           ]
         },
         "options": {}
       },
       "id": "n5",
-      "name": "Kirim Reminder",
+      "name": "Send Reminder",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -131,7 +131,7 @@
         "operation": "append",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -146,7 +146,7 @@
         "options": {}
       },
       "id": "n6",
-      "name": "Tandai Sudah Dikirim",
+      "name": "Tandai Already Sent",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
@@ -156,55 +156,55 @@
     }
   ],
   "connections": {
-    "Cek Tiap 1 Jam": {
+    "Check Every Hour": {
       "main": [
         [
           {
-            "node": "Baca Cart Tertinggal",
+            "node": "Read Abandoned Cart",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Baca Cart Tertinggal": {
+    "Read Abandoned Cart": {
       "main": [
         [
           {
-            "node": "Filter > 3 Jam & Belum Bayar",
+            "node": "Filter > 3 Hours & Unpaid",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Filter > 3 Jam & Belum Bayar": {
+    "Filter > 3 Hours & Unpaid": {
       "main": [
         [
           {
-            "node": "Sudah > 3 Jam?",
+            "node": "Already > 3 Hours?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Sudah > 3 Jam?": {
+    "Already > 3 Hours?": {
       "main": [
         [
           {
-            "node": "Kirim Reminder",
+            "node": "Send Reminder",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Kirim Reminder": {
+    "Send Reminder": {
       "main": [
         [
           {
-            "node": "Tandai Sudah Dikirim",
+            "node": "Tandai Already Sent",
             "type": "main",
             "index": 0
           }

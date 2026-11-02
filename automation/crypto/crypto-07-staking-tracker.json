@@ -13,7 +13,7 @@
         }
       },
       "id": "n1",
-      "name": "Cek Tiap Hari 08:00",
+      "name": "Check Every Day at 08:00",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.1,
       "position": [
@@ -23,11 +23,11 @@
     },
     {
       "parameters": {
-        "url": "https://api.coingecko.com/api/v3/simple/price?ids=GANTI_TOKEN_ID&vs_currencies=usd&include_24hr_change=true",
+        "url": "https://api.coingecko.com/api/v3/simple/price?ids=REPLACE_TOKEN_ID&vs_currencies=usd&include_24hr_change=true",
         "options": {}
       },
       "id": "n2",
-      "name": "Ambil Harga Token",
+      "name": "Fetch Token Price",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -40,7 +40,7 @@
         "operation": "read",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -51,7 +51,7 @@
         "options": {}
       },
       "id": "n3",
-      "name": "Baca Posisi Staking",
+      "name": "Read Staking Positions",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
@@ -61,10 +61,10 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst posisi = $('Baca Posisi Staking').all().map(r => r.json);\nconst harga = $input.first().json;\n\nlet out = 'STAKING REPORT\\n================\\n';\nlet totalUsd = 0;\nfor (const p of posisi) {\n  const h = harga[p.token_id]?.usd || 0;\n  const nilai = p.jumlah * h;\n  totalUsd += nilai;\n  const rewardHarian = nilai * (p.apr / 100) / 365;\n  out += '\\n' + p.token.toUpperCase() + '\\n';\n  out += '  Jumlah   : ' + p.jumlah + '\\n';\n  out += '  APR      : ' + p.apr + '%\\n';\n  out += '  Nilai    : $' + nilai.toFixed(2) + '\\n';\n  out += '  Reward/h : $' + rewardHarian.toFixed(4) + '\\n';\n  out += '  Reward/bl: $' + (rewardHarian * 30).toFixed(2) + '\\n';\n}\nout += '\\n================\\nTOTAL: $' + totalUsd.toFixed(2);\nreturn [{ json: { laporan: out, totalUsd } }];\n"
+        "jsCode": "\nconst posisi = $('Read Staking Positions').all().map(r => r.json);\nconst price = $input.first().json;\n\nlet out = 'STAKING REPORT\\n================\\n';\nlet totalUsd = 0;\nfor (const p of posisi) {\n  const h = price[p.token_id]?.usd || 0;\n  const value = p.amount * h;\n  totalUsd += value;\n  const rewardHarian = value * (p.apr / 100) / 365;\n  out += '\\n' + p.token.toUpperCase() + '\\n';\n  out += '  Amount   : ' + p.amount + '\\n';\n  out += '  APR      : ' + p.apr + '%\\n';\n  out += '  Value    : $' + value.toFixed(2) + '\\n';\n  out += '  Reward/h : $' + rewardHarian.toFixed(4) + '\\n';\n  out += '  Reward/bl: $' + (rewardHarian * 30).toFixed(2) + '\\n';\n}\nout += '\\n================\\nTOTAL: $' + totalUsd.toFixed(2);\nreturn [{ json: { report: out, totalUsd } }];\n"
       },
       "id": "n4",
-      "name": "Hitung Reward & Nilai",
+      "name": "Calculate Reward & Value",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -81,7 +81,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -91,18 +91,18 @@
           "parameters": [
             {
               "name": "target",
-              "value": "GANTI_NOMOR_WA_ADMIN"
+              "value": "REPLACE_ADMIN_WHATSAPP_NUMBER"
             },
             {
               "name": "message",
-              "value": "={{$json.laporan}}"
+              "value": "={{$json.report}}"
             }
           ]
         },
         "options": {}
       },
       "id": "n5",
-      "name": "Kirim Laporan Staking",
+      "name": "Send Staking Report",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -112,44 +112,44 @@
     }
   ],
   "connections": {
-    "Cek Tiap Hari 08:00": {
+    "Check Every Day at 08:00": {
       "main": [
         [
           {
-            "node": "Ambil Harga Token",
+            "node": "Fetch Token Price",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Ambil Harga Token": {
+    "Fetch Token Price": {
       "main": [
         [
           {
-            "node": "Baca Posisi Staking",
+            "node": "Read Staking Positions",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Baca Posisi Staking": {
+    "Read Staking Positions": {
       "main": [
         [
           {
-            "node": "Hitung Reward & Nilai",
+            "node": "Calculate Reward & Value",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Hitung Reward & Nilai": {
+    "Calculate Reward & Value": {
       "main": [
         [
           {
-            "node": "Kirim Laporan Staking",
+            "node": "Send Staking Report",
             "type": "main",
             "index": 0
           }

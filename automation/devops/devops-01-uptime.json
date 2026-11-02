@@ -13,7 +13,7 @@
         }
       },
       "id": "n1",
-      "name": "Cek Tiap 5 Menit",
+      "name": "Check Every 5 Minutes",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.1,
       "position": [
@@ -23,11 +23,11 @@
     },
     {
       "parameters": {
-        "url": "https://GANTI_DOMAIN_LO.com",
+        "url": "https://REPLACE_DOMAIN_LO.com",
         "options": {}
       },
       "id": "n2",
-      "name": "Cek Website",
+      "name": "Check Website",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -74,7 +74,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -84,11 +84,11 @@
           "parameters": [
             {
               "name": "target",
-              "value": "GANTI_NOMOR_WA_ADMIN"
+              "value": "REPLACE_ADMIN_WHATSAPP_NUMBER"
             },
             {
               "name": "message",
-              "value": "🚨 WEBSITE DOWN!\\n\\nDomain : GANTI_DOMAIN_LO.com\\nStatus : {{$json.statusCode || 'no response'}}\\nWaktu  : {{$now}}\\n\\nCek segera!"
+              "value": "🚨 WEBSITE DOWN!\\n\\nDomain : REPLACE_DOMAIN_LO.com\\nStatus : {{$json.statusCode || 'no response'}}\\nWaktu  : {{$now}}\\n\\nCek immediately!"
             }
           ]
         },
@@ -112,7 +112,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -122,18 +122,18 @@
           "parameters": [
             {
               "name": "target",
-              "value": "GANTI_NOMOR_WA_ADMIN"
+              "value": "REPLACE_ADMIN_WHATSAPP_NUMBER"
             },
             {
               "name": "message",
-              "value": "✅ Website normal lagi.\\nStatus: {{$json.statusCode}}"
+              "value": "✅ Website normal currently.\\nStatus: {{$json.statusCode}}"
             }
           ]
         },
         "options": {}
       },
       "id": "n5",
-      "name": "Konfirmasi Normal",
+      "name": "Confirm Normal",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -143,18 +143,18 @@
     }
   ],
   "connections": {
-    "Cek Tiap 5 Menit": {
+    "Check Every 5 Minutes": {
       "main": [
         [
           {
-            "node": "Cek Website",
+            "node": "Check Website",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Cek Website": {
+    "Check Website": {
       "main": [
         [
           {
@@ -174,7 +174,7 @@
             "index": 0
           },
           {
-            "node": "Konfirmasi Normal",
+            "node": "Confirm Normal",
             "type": "main",
             "index": 0
           }

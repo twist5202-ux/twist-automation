@@ -8,7 +8,7 @@
         "options": {}
       },
       "id": "n1",
-      "name": "Pesan Masuk",
+      "name": "Incoming Message",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
@@ -20,10 +20,10 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst b = $input.first().json.body || $input.first().json;\n\nconst sender = String(b.sender || b.from || b.phone || \"\").replace(/[^0-9]/g, \"\");\nlet text = String(b.message || b.text || b.body || \"\").trim();\nconst pushname = b.pushname || b.sender_name || \"\";\n\nconst ADMIN = \"GANTI_NOMOR_WA_ADMIN\".replace(/[^0-9]/g, \"\");\nconst from_admin = sender === ADMIN;\n\nreturn [{\n  json: {\n    sender,\n    text,\n    pushname,\n    from_admin,\n    waktu: new Date().toLocaleString(\"id-ID\")\n  }\n}];\n"
+        "jsCode": "\nconst b = $input.first().json.body || $input.first().json;\n\nconst sender = String(b.sender || b.from || b.phone || \"\").replace(/[^0-9]/g, \"\");\nlet text = String(b.message || b.text || b.body || \"\").trim();\nconst pushname = b.pushname || b.sender_name || \"\";\n\nconst ADMIN = \"REPLACE_ADMIN_WHATSAPP_NUMBER\".replace(/[^0-9]/g, \"\");\nconst from_admin = sender === ADMIN;\n\nreturn [{\n  json: {\n    sender,\n    text,\n    pushname,\n    from_admin,\n    time: new Date().toLocaleString(\"id-ID\")\n  }\n}];\n"
       },
       "id": "n2",
-      "name": "Normalize Pesan",
+      "name": "Normalize Message",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -37,7 +37,7 @@
         "operation": "read",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -48,21 +48,21 @@
         "options": {}
       },
       "id": "n3",
-      "name": "Baca Tab State",
+      "name": "Read State Tab",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
         -120,
         300
       ],
-      "notes": "Baca tab 'State'."
+      "notes": "Read tab 'State'."
     },
     {
       "parameters": {
         "operation": "read",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -73,49 +73,49 @@
         "options": {}
       },
       "id": "n4",
-      "name": "Baca Tab History",
+      "name": "Read History Tab",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
         -120,
         460
       ],
-      "notes": "Baca tab 'History'."
+      "notes": "Read tab 'History'."
     },
     {
       "parameters": {
-        "jsCode": "\nconst { sender } = $(\"Normalize Pesan\").first().json;\nconst rows = $(\"Baca Tab State\").all().map(r => r.json);\n\nconst idx = rows.findIndex(r => String(r.phone || \"\").replace(/[^0-9]/g, \"\") === sender);\nconst row = idx >= 0 ? rows[idx] : null;\n\nconst hist = $(\"Baca Tab History\").all().map(r => r.json)\n  .filter(h => String(h.phone || \"\").replace(/[^0-9]/g, \"\") === sender)\n  .slice(-6);\n\nreturn [{\n  json: {\n    sender,\n    ada_state: !!row,\n    mode: row ? (row.mode || \"ai\") : \"ai\",\n    assigned_agent: row ? (row.assigned_agent || \"\") : \"\",\n    escalated_at: row ? (row.escalated_at || \"\") : \"\",\n    last_human_reply: row ? (row.last_human_reply || \"\") : \"\",\n    history: hist\n  }\n}];\n"
+        "jsCode": "\nconst { sender } = $(\"Normalize Message\").first().json;\nconst rows = $(\"Read State Tab\").all().map(r => r.json);\n\nconst idx = rows.findIndex(r => String(r.phone || \"\").replace(/[^0-9]/g, \"\") === sender);\nconst row = idx >= 0 ? rows[idx] : null;\n\nconst hist = $(\"Read History Tab\").all().map(r => r.json)\n  .filter(h => String(h.phone || \"\").replace(/[^0-9]/g, \"\") === sender)\n  .slice(-6);\n\nreturn [{\n  json: {\n    sender,\n    ada_state: !!row,\n    mode: row ? (row.mode || \"ai\") : \"ai\",\n    assigned_agent: row ? (row.assigned_agent || \"\") : \"\",\n    escalated_at: row ? (row.escalated_at || \"\") : \"\",\n    last_human_reply: row ? (row.last_human_reply || \"\") : \"\",\n    history: hist\n  }\n}];\n"
       },
       "id": "n5",
-      "name": "Cek Mode Percakapan",
+      "name": "Check Conversation Mode",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         100,
         300
       ],
-      "notes": "Cari state percakapan customer + 6 pesan terakhir."
+      "notes": "Cari state percakapan customer + 6 message terakhir."
     },
     {
       "parameters": {
-        "jsCode": "\nconst { sender, text, pushname, from_admin } = $(\"Normalize Pesan\").first().json;\nif (from_admin) return [{ json: { skip: true } }];\nreturn [{ json: {\n  skip: false,\n  waktu: new Date().toLocaleString(\"id-ID\"),\n  phone: sender,\n  dari: \"customer\",\n  pesan: text\n} }];\n"
+        "jsCode": "\nconst { sender, text, pushname, from_admin } = $(\"Normalize Message\").first().json;\nif (from_admin) return [{ json: { skip: true } }];\nreturn [{ json: {\n  skip: false,\n  time: new Date().toLocaleString(\"id-ID\"),\n  phone: sender,\n  from: \"customer\",\n  message: text\n} }];\n"
       },
       "id": "n6",
-      "name": "Siapkan Log Pesan Customer",
+      "name": "Prepare Customer Message Log",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         320,
         460
       ],
-      "notes": "Setiap pesan customer dicatat — dipakai watchdog buat hitung diam."
+      "notes": "Every message customer logged — dipakai watchdog create calculate idle."
     },
     {
       "parameters": {
         "operation": "append",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -130,14 +130,14 @@
         "options": {}
       },
       "id": "n7",
-      "name": "Catat Pesan Customer",
+      "name": "Log Customer Message",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
         540,
         460
       ],
-      "notes": "Log pesan customer ke tab History. Wajib ada biar auto-tutup bisa hitung diam."
+      "notes": "Log message customer ke tab History. Wajib ada biar auto-tutup bisa calculate idle."
     },
     {
       "parameters": {
@@ -150,7 +150,7 @@
           "conditions": [
             {
               "id": "c1",
-              "leftValue": "={{ $('Normalize Pesan').first().json.from_admin }}",
+              "leftValue": "={{ $('Normalize Message').first().json.from_admin }}",
               "rightValue": true,
               "operator": {
                 "type": "boolean",
@@ -163,7 +163,7 @@
         }
       },
       "id": "n8",
-      "name": "Dari Admin?",
+      "name": "From Admin?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
@@ -173,17 +173,17 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst { sender, text } = $(\"Normalize Pesan\").first().json;\nconst rows = $(\"Baca Tab State\").all().map(r => r.json);\n\nlet target = \"\";\nconst m = text.match(/ke\\s*(62\\d{6,})\\s*[:\\-]?\\s*([\\s\\S]*)/i);\nif (m) {\n  target = m[1];\n  text = m[2].trim();\n}\n\nif (!target) {\n  const humanRows = rows.filter(r => (r.mode || \"ai\") === \"human\");\n  if (humanRows.length > 0) {\n    humanRows.sort((a, b) =>\n      new Date(b.escalated_at || 0) - new Date(a.escalated_at || 0));\n    target = String(humanRows[0].phone || \"\").replace(/[^0-9]/g, \"\");\n  }\n}\n\nconst tutup = /^(tutup|selesai|close|done|sudah)/i.test(text.trim());\n\nreturn [{\n  json: {\n    admin: sender,\n    target,\n    pesan_admin: text.trim(),\n    tutup,\n    ada_target: !!target\n  }\n}];\n"
+        "jsCode": "\nconst { sender, text } = $(\"Normalize Message\").first().json;\nconst rows = $(\"Read State Tab\").all().map(r => r.json);\n\nlet target = \"\";\nconst m = text.match(/(?:to|ke)\\s*(62\\d{6,})\\s*[:\\-]?\\s*([\\s\\S]*)/i);\nif (m) {\n  target = m[1];\n  text = m[2].trim();\n}\n\nif (!target) {\n  const humanRows = rows.filter(r => (r.mode || \"ai\") === \"human\");\n  if (humanRows.length > 0) {\n    humanRows.sort((a, b) =>\n      new Date(b.escalated_at || 0) - new Date(a.escalated_at || 0));\n    target = String(humanRows[0].phone || \"\").replace(/[^0-9]/g, \"\");\n  }\n}\n\nconst closeSession = /^(tutup|close|done|finished)/i.test(text.trim());\n\nreturn [{\n  json: {\n    admin: sender,\n    target,\n    admin_message: text.trim(),\n    close_session: closeSession,\n    has_target: !!target\n  }\n}];\n"
       },
       "id": "n9",
-      "name": "Parse Perintah Admin",
+      "name": "Parse Admin Command",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         540,
         160
       ],
-      "notes": "Admin bisa reply langsung (ke human-mode terbaru) atau 'ke 62xxx: pesan'."
+      "notes": "Admin bisa reply directly (ke human-mode terbaru) atau 'ke 62xxx: message'."
     },
     {
       "parameters": {
@@ -196,7 +196,7 @@
           "conditions": [
             {
               "id": "c2",
-              "leftValue": "={{ $json.tutup }}",
+              "leftValue": "={{ $json.close_session }}",
               "rightValue": true,
               "operator": {
                 "type": "boolean",
@@ -209,7 +209,7 @@
         }
       },
       "id": "n10",
-      "name": "Admin Tutup Sesi?",
+      "name": "Admin Closes Session?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
@@ -222,7 +222,7 @@
         "operation": "update",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -241,14 +241,14 @@
         "options": {}
       },
       "id": "n11",
-      "name": "Set Mode Kembali ke AI",
+      "name": "Set Mode Back to AI",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
         980,
         60
       ],
-      "notes": "Sesi ditutup admin -> AI aktif lagi utk customer itu."
+      "notes": "Session closed admin -> AI active currently utk customer itu."
     },
     {
       "parameters": {
@@ -259,7 +259,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -269,39 +269,39 @@
           "parameters": [
             {
               "name": "target",
-              "value": "={{ $('Parse Perintah Admin').first().json.target }}"
+              "value": "={{ $('Parse Admin Command').first().json.target }}"
             },
             {
               "name": "message",
-              "value": "Terima kasih sudah hubungi GANTI_NAMA_BISNIS. Sesi dengan tim kami sudah selesai. Kalau butuh bantuan lain, chat lagi kapan aja — saya siap bantu 24 jam."
+              "value": "Thank you for contacting REPLACE_BUSINESS_NAME. Your session with our team is now closed. If you need anything else, message us any time — we are here 24 hours."
             }
           ]
         },
         "options": {}
       },
       "id": "n12",
-      "name": "Notif Customer Sesi Ditutup",
+      "name": "Notify Customer Session Closed",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
         980,
         260
       ],
-      "notes": "Gateway WhatsApp (Fonnte). Ganti URL kalau pakai Wablas/MPWA."
+      "notes": "Gateway WhatsApp (Fonnte). Ganti URL if pakai Wablas/MPWA."
     },
     {
       "parameters": {
-        "jsCode": "\nconst p = $(\"Parse Perintah Admin\").first().json;\nif (!p.ada_target) {\n  return [{ json: { skip: true, alasan: \"gak ada customer human-mode\" } }];\n}\nreturn [{ json: {\n  skip: false,\n  target: p.target,\n  pesan: p.pesan_admin\n} }];\n"
+        "jsCode": "\nconst p = $(\"Parse Admin Command\").first().json;\nif (!p.has_target) {\n  return [{ json: { skip: true, reason: \"no customer in human mode\" } }];\n}\nreturn [{ json: {\n  skip: false,\n  target: p.target,\n  message: p.admin_message\n} }];\n"
       },
       "id": "n13",
-      "name": "Siapkan Pengiriman ke Customer",
+      "name": "Prepare Delivery to Customer",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         1200,
         160
       ],
-      "notes": "Guard: kalau gak ada customer, stop."
+      "notes": "Guard: if gak ada customer, stop."
     },
     {
       "parameters": {
@@ -312,7 +312,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -326,28 +326,28 @@
             },
             {
               "name": "message",
-              "value": "={{ $json.pesan }}"
+              "value": "={{ $json.message }}"
             }
           ]
         },
         "options": {}
       },
       "id": "n14",
-      "name": "Teruskan Pesan Admin ke Customer",
+      "name": "Forward Admin Message to Customer",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
         1420,
         160
       ],
-      "notes": "Gateway WhatsApp (Fonnte). Ganti URL kalau pakai Wablas/MPWA."
+      "notes": "Gateway WhatsApp (Fonnte). Ganti URL if pakai Wablas/MPWA."
     },
     {
       "parameters": {
         "operation": "update",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -373,14 +373,14 @@
         1640,
         160
       ],
-      "notes": "Catat waktu admin terakhir bales, buat watchdog."
+      "notes": "Log time admin terakhir reply, create watchdog."
     },
     {
       "parameters": {
         "operation": "append",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -395,14 +395,14 @@
         "options": {}
       },
       "id": "n16",
-      "name": "Catat History (Admin)",
+      "name": "Log History (Admin)",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
         1860,
         160
       ],
-      "notes": "Tambah baris ke tab 'History'."
+      "notes": "Add baris ke tab 'History'."
     },
     {
       "parameters": {
@@ -415,7 +415,7 @@
           "conditions": [
             {
               "id": "c3",
-              "leftValue": "={{ $('Cek Mode Percakapan').first().json.mode }}",
+              "leftValue": "={{ $('Check Conversation Mode').first().json.mode }}",
               "rightValue": "human",
               "operator": {
                 "type": "string",
@@ -427,7 +427,7 @@
         }
       },
       "id": "n17",
-      "name": "Mode Human Aktif?",
+      "name": "Human Mode Active?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
@@ -444,7 +444,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -454,32 +454,32 @@
           "parameters": [
             {
               "name": "target",
-              "value": "GANTI_NOMOR_WA_ADMIN"
+              "value": "REPLACE_ADMIN_WHATSAPP_NUMBER"
             },
             {
               "name": "message",
-              "value": "PESAN MASUK (sesi manusia)\\n======================\\nDari    : {{$('Normalize Pesan').first().json.sender}}\\nNama    : {{$('Normalize Pesan').first().json.pushname}}\\nWaktu   : {{$('Normalize Pesan').first().json.waktu}}\\n\\n{{$('Normalize Pesan').first().json.text}}\\n\\nBalas pesan ini, nanti otomatis diteruskan ke customer.\\nKetik 'tutup' kalau sesi sudah selesai."
+              "value": "INCOMING MESSAGE (human mode)\\n======================\\nFrom   : {{$('Normalize Message').first().json.sender}}\\nName   : {{$('Normalize Message').first().json.pushname}}\\nTime   : {{$('Normalize Message').first().json.time}}\\n\\n{{$('Normalize Message').first().json.text}}\\n\\nReply to this message and it will be forwarded to the customer.\\nType 'tutup' (or 'close') when the session is done."
             }
           ]
         },
         "options": {}
       },
       "id": "n18",
-      "name": "Teruskan Pesan Customer ke Admin",
+      "name": "Forward Customer Message to Admin",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
         760,
         540
       ],
-      "notes": "Gateway WhatsApp (Fonnte). Ganti URL kalau pakai Wablas/MPWA."
+      "notes": "Gateway WhatsApp (Fonnte). Ganti URL if pakai Wablas/MPWA."
     },
     {
       "parameters": {
-        "jsCode": "\nconst { sender, text, pushname } = $(\"Normalize Pesan\").first().json;\nconst st = $(\"Cek Mode Percakapan\").first().json;\n\nconst riwayat = (st.history || []).map(h =>\n  (h.dari === \"customer\" ? \"Customer\" : \"CS\") + \": \" + h.pesan\n).join(\"\\n\") || \"(belum ada riwayat)\";\n\nconst sistem =\n  \"Kamu adalah CS virtual \" + BIZ + \". Jawab dalam bahasa Indonesia santai.\\n\" +\n  \"Jam operasional: \" + JAM + \".\\n\" +\n  \"Aturan:\\n\" +\n  \"1. Jawab singkat, maksimal 3 kalimat, jelas, tidak bertele-tele.\\n\" +\n  \"2. Kalau tidak tahu jawabannya, katakan 'saya cek dulu ke tim' JANGAN mengarang.\\n\" +\n  \"3. Kalau customer minta bicara dengan manusia, komplain keras, minta refund,\\n\" +\n  \"   atau masalah di luar kemampuanmu, tulis [ESCALATE] di baris pertama.\\n\" +\n  \"4. Jangan janji hal yang tidak pasti (pengiriman, refund, diskon).\\n\" +\n  \"5. Sapa customer pakai nama kalau ada.\";\n\nconst user =\n  \"Riwayat chat:\\n\" + riwayat + \"\\n\\n\" +\n  \"Nama customer: \" + (pushname || \"tidak diketahui\") + \"\\n\" +\n  \"Pesan customer: \" + text + \"\\n\\n\" +\n  \"Jawab sekarang.\";\n\nreturn [{\n  json: {\n    model: \"GANTI_MODEL_AI\",\n    messages: [\n      { role: \"system\", content: sistem },\n      { role: \"user\", content: user }\n    ],\n    temperature: 0.3,\n    max_tokens: 400\n  }\n}];\n"
+        "jsCode": "\nconst { sender, text, pushname } = $(\"Normalize Message\").first().json;\nconst state = $(\"Check Conversation Mode\").first().json;\n\nconst history = (st.history || []).map(h =>\n  (h.from === \"customer\" ? \"Customer\" : \"Agent\") + \": \" + h.message\n).join(\"\\n\") || \"(no history yet)\";\n\nconst system =\n  \"You are a virtual support agent for \" + BIZ + \". Reply in casual Indonesian.\\n\" +\n  \"Operating hours: \" + HOUR + \".\\n\" +\n  \"Aturan:\\n\" +\n  \"1. Reply briefly, max 3 sentences, clear, no waffling.\\n\" +\n  \"2. If you don't know the answer, say 'let me check with the team' — DO NOT make things up.\\n\" +\n  \"3. If the customer asks to talk to a human, complains strongly, or asks for a refund,\\n\" +\n  \"   or an issue beyond your ability, write [ESCALATE] on the first line.\\n\" +\n  \"4. Do not promise anything uncertain (delivery, refund, discount).\\n\" +\n  \"5. Greet the customer by name if available.\";\n\nconst userMsg =\n  \"Chat history:\\n\" + riwayat + \"\\n\\n\" +\n  \"Customer name: \" + (pushname || \"not diketahui\") + \"\\n\" +\n  \"Customer message: \" + text + \"\\n\\n\" +\n  \"Reply now.\";\n\nreturn [{\n  json: {\n    model: \"REPLACE_MODEL_AI\",\n    messages: [\n      { role: \"system\", content: systemPrompt },\n      { role: \"user\", content: userMsg }\n    ],\n    temperature: 0.3,\n    max_tokens: 400\n  }\n}];\n"
       },
       "id": "n19",
-      "name": "Susun Prompt AI",
+      "name": "Build AI Prompt",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -491,13 +491,13 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "GANTI_BASE_URL_AI/chat/completions",
+        "url": "REPLACE_AI_BASE_URL/chat/completions",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             {
               "name": "Authorization",
-              "value": "Bearer GANTI_API_KEY_AI"
+              "value": "Bearer REPLACE_AI_API_KEY"
             },
             {
               "name": "Content-Type",
@@ -525,10 +525,10 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst resp = $input.first().json;\nlet balasan = resp.choices?.[0]?.message?.content || resp.message?.content || \"\";\n\nconst escalate_marker = /\\[ESCALATE\\]/i.test(balasan);\nbalasan = balasan.replace(/\\[ESCALATE\\]/gi, \"\").trim();\n\nconst { text } = $(\"Normalize Pesan\").first().json;\nconst t = text.toLowerCase();\n\nconst kata = [\n  \"manusia\", \"orang\", \"admin asli\", \"bicara sama orang\", \"cs asli\",\n  \"komplain\", \"keluhan\", \"marah\", \"kesal\", \"tidak puas\", \"kecewa\",\n  \"refund\", \"pengembalian\", \"uang kembali\", \"ganti barang\", \"rusak\",\n  \"lapor\", \"report\", \"pengaduan\", \"penipuan\", \"scam\",\n  \"manager\", \"atasan\", \"pemilik\", \"bos\"\n];\nconst kena_kata = kata.filter(k => t.includes(k));\n\nconst ragu = /(tidak tahu|tidak bisa|cek dulu|tidak memiliki akses|di luar)/i.test(balasan);\n\nconst escalate = escalate_marker || kena_kata.length > 0 || ragu;\n\nlet alasan = \"manual\";\nif (escalate_marker) alasan = \"AI minta eskalasi\";\nelse if (kena_kata.length > 0) alasan = \"keyword: \" + kena_kata.join(\", \");\nelse if (ragu) alasan = \"AI tidak yakin\";\n\nreturn [{\n  json: {\n    balasan,\n    escalate,\n    alasan,\n    kena_kata\n  }\n}];\n"
+        "jsCode": "\nconst resp = $input.first().json;\nlet reply = resp.choices?.[0]?.message?.content || resp.message?.content || \"\";\n\nconst escalateMarker = /\\[ESCALATE\\]/i.test(reply);\nreply = reply.replace(/\\[ESCALATE\\]/gi, \"\").trim();\n\nconst { text } = $(\"Normalize Message\").first().json;\nconst t = text.toLowerCase();\n\nconst keywords = [\n  \"human\", \"person\", \"real admin\", \"talk to someone\", \"real agent\",\n  \"complain\", \"complaint\", \"angry\", \"upset\", \"not satisfied\", \"disappointed\",\n  \"refund\", \"return\", \"money back\", \"replace item\", \"broken\",\n  \"report\", \"complaint\", \"fraud\", \"scam\",\n  \"manager\", \"supervisor\", \"owner\", \"boss\"\n];\nconst matched_words = kata.filter(k => t.includes(k));\n\nconst uncertain = /(don't know|can't|let me check|no access|outside)/i.test(reply);\n\nconst escalate = escalateMarker || matched_words.length > 0 || uncertain;\n\nlet reason = \"manual\";\nif (escalateMarker) reason = \"AI requested escalation\";\nelse if (matched_words.length > 0) alasan = \"keyword: \" + matched_words.join(\", \");\nelse if (uncertain) reason = \"AI not confident\";\n\nreturn [{\n  json: {\n    reply,\n    escalate,\n    reason,\n    matched_words\n  }\n}];\n"
       },
       "id": "n21",
-      "name": "Parse & Deteksi Eskalasi",
+      "name": "Parse & Detect Escalation",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -561,7 +561,7 @@
         }
       },
       "id": "n22",
-      "name": "Perlu Eskalasi?",
+      "name": "Needs Escalation?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
@@ -574,7 +574,7 @@
         "operation": "update",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -593,14 +593,14 @@
         "options": {}
       },
       "id": "n23",
-      "name": "Set Mode Human",
+      "name": "Set Human Mode",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
         1640,
         660
       ],
-      "notes": "AI berhenti, sesi dipegang manusia."
+      "notes": "AI berhenti, session dipegang manusia."
     },
     {
       "parameters": {
@@ -611,7 +611,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -621,25 +621,25 @@
           "parameters": [
             {
               "name": "target",
-              "value": "GANTI_NOMOR_WA_ADMIN"
+              "value": "REPLACE_ADMIN_WHATSAPP_NUMBER"
             },
             {
               "name": "message",
-              "value": "PERLU BANTUAN MANUSIA\\n======================\\nDari     : {{$('Normalize Pesan').first().json.sender}}\\nNama     : {{$('Normalize Pesan').first().json.pushname}}\\nAlasan   : {{$('Parse & Deteksi Eskalasi').first().json.alasan}}\\nWaktu    : {{$('Normalize Pesan').first().json.waktu}}\\n\\nPesan customer:\\n{{$('Normalize Pesan').first().json.text}}\\n\\nBalas pesan ini, otomatis diteruskan ke customer.\\nKetik 'tutup' kalau sesi selesai."
+              "value": "HUMAN HELP NEEDED\\n======================\\nFrom    : {{$('Normalize Message').first().json.sender}}\\nName    : {{$('Normalize Message').first().json.pushname}}\\nReason  : {{$('Parse & Detect Escalation').first().json.reason}}\\nTime    : {{$('Normalize Message').first().json.time}}\\n\\nCustomer message:\\n{{$('Normalize Message').first().json.text}}\\n\\nReply to this message and it will be forwarded to the customer.\\nType 'tutup' (or 'close') when the session is done."
             }
           ]
         },
         "options": {}
       },
       "id": "n24",
-      "name": "Notif Admin Eskalasi",
+      "name": "Notify Admin of Escalation",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
         1860,
         660
       ],
-      "notes": "Gateway WhatsApp (Fonnte). Ganti URL kalau pakai Wablas/MPWA."
+      "notes": "Gateway WhatsApp (Fonnte). Ganti URL if pakai Wablas/MPWA."
     },
     {
       "parameters": {
@@ -650,7 +650,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -660,32 +660,32 @@
           "parameters": [
             {
               "name": "target",
-              "value": "={{ $('Normalize Pesan').first().json.sender }}"
+              "value": "={{ $('Normalize Message').first().json.sender }}"
             },
             {
               "name": "message",
-              "value": "Baik, saya hubungkan ke tim GANTI_NAMA_BISNIS ya. Mohon tunggu sebentar, ada yang akan bales langsung. Terima kasih."
+              "value": "Sure, I will connect you to the REPLACE_BUSINESS_NAME team. Please wait a moment — someone will reply to you shortly. Thank you."
             }
           ]
         },
         "options": {}
       },
       "id": "n25",
-      "name": "Pesan Holding ke Customer",
+      "name": "Holding Message to Customer",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
         2080,
         660
       ],
-      "notes": "Gateway WhatsApp (Fonnte). Ganti URL kalau pakai Wablas/MPWA."
+      "notes": "Gateway WhatsApp (Fonnte). Ganti URL if pakai Wablas/MPWA."
     },
     {
       "parameters": {
         "operation": "append",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -700,14 +700,14 @@
         "options": {}
       },
       "id": "n26",
-      "name": "Catat History (Eskalasi)",
+      "name": "Log History (Escalation)",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
         2300,
         660
       ],
-      "notes": "Tambah baris ke tab 'History'."
+      "notes": "Add baris ke tab 'History'."
     },
     {
       "parameters": {
@@ -718,7 +718,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -728,32 +728,32 @@
           "parameters": [
             {
               "name": "target",
-              "value": "={{ $('Normalize Pesan').first().json.sender }}"
+              "value": "={{ $('Normalize Message').first().json.sender }}"
             },
             {
               "name": "message",
-              "value": "={{ $('Parse & Deteksi Eskalasi').first().json.balasan }}"
+              "value": "={{ $('Parse & Detect Escalation').first().json.reply }}"
             }
           ]
         },
         "options": {}
       },
       "id": "n27",
-      "name": "Kirim Balasan AI ke Customer",
+      "name": "Send AI Reply to Customer",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
         1640,
         900
       ],
-      "notes": "Gateway WhatsApp (Fonnte). Ganti URL kalau pakai Wablas/MPWA."
+      "notes": "Gateway WhatsApp (Fonnte). Ganti URL if pakai Wablas/MPWA."
     },
     {
       "parameters": {
         "operation": "append",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -768,19 +768,19 @@
         "options": {}
       },
       "id": "n28",
-      "name": "Catat History (AI)",
+      "name": "Log History (AI)",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
         1860,
         900
       ],
-      "notes": "Tambah baris ke tab 'History'."
+      "notes": "Add baris ke tab 'History'."
     },
     {
       "parameters": {},
       "id": "n29",
-      "name": "Selesai",
+      "name": "Done",
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
       "position": [
@@ -790,154 +790,154 @@
     }
   ],
   "connections": {
-    "Pesan Masuk": {
+    "Incoming Message": {
       "main": [
         [
           {
-            "node": "Normalize Pesan",
+            "node": "Normalize Message",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Normalize Pesan": {
+    "Normalize Message": {
       "main": [
         [
           {
-            "node": "Baca Tab State",
+            "node": "Read State Tab",
             "type": "main",
             "index": 0
           },
           {
-            "node": "Baca Tab History",
+            "node": "Read History Tab",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Baca Tab State": {
+    "Read State Tab": {
       "main": [
         [
           {
-            "node": "Cek Mode Percakapan",
+            "node": "Check Conversation Mode",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Baca Tab History": {
+    "Read History Tab": {
       "main": [
         [
           {
-            "node": "Cek Mode Percakapan",
+            "node": "Check Conversation Mode",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Cek Mode Percakapan": {
+    "Check Conversation Mode": {
       "main": [
         [
           {
-            "node": "Siapkan Log Pesan Customer",
+            "node": "Prepare Customer Message Log",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Siapkan Log Pesan Customer": {
+    "Prepare Customer Message Log": {
       "main": [
         [
           {
-            "node": "Catat Pesan Customer",
+            "node": "Log Customer Message",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Catat Pesan Customer": {
+    "Log Customer Message": {
       "main": [
         [
           {
-            "node": "Dari Admin?",
+            "node": "From Admin?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Dari Admin?": {
+    "From Admin?": {
       "main": [
         [
           {
-            "node": "Parse Perintah Admin",
+            "node": "Parse Admin Command",
             "type": "main",
             "index": 0
           },
           {
-            "node": "Mode Human Aktif?",
+            "node": "Human Mode Active?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Parse Perintah Admin": {
+    "Parse Admin Command": {
       "main": [
         [
           {
-            "node": "Admin Tutup Sesi?",
+            "node": "Admin Closes Session?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Admin Tutup Sesi?": {
+    "Admin Closes Session?": {
       "main": [
         [
           {
-            "node": "Set Mode Kembali ke AI",
+            "node": "Set Mode Back to AI",
             "type": "main",
             "index": 0
           },
           {
-            "node": "Siapkan Pengiriman ke Customer",
+            "node": "Prepare Delivery to Customer",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Set Mode Kembali ke AI": {
+    "Set Mode Back to AI": {
       "main": [
         [
           {
-            "node": "Notif Customer Sesi Ditutup",
+            "node": "Notify Customer Session Closed",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Siapkan Pengiriman ke Customer": {
+    "Prepare Delivery to Customer": {
       "main": [
         [
           {
-            "node": "Teruskan Pesan Admin ke Customer",
+            "node": "Forward Admin Message to Customer",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Teruskan Pesan Admin ke Customer": {
+    "Forward Admin Message to Customer": {
       "main": [
         [
           {
@@ -952,30 +952,30 @@
       "main": [
         [
           {
-            "node": "Catat History (Admin)",
+            "node": "Log History (Admin)",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Mode Human Aktif?": {
+    "Human Mode Active?": {
       "main": [
         [
           {
-            "node": "Teruskan Pesan Customer ke Admin",
+            "node": "Forward Customer Message to Admin",
             "type": "main",
             "index": 0
           },
           {
-            "node": "Susun Prompt AI",
+            "node": "Build AI Prompt",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Susun Prompt AI": {
+    "Build AI Prompt": {
       "main": [
         [
           {
@@ -990,89 +990,89 @@
       "main": [
         [
           {
-            "node": "Parse & Deteksi Eskalasi",
+            "node": "Parse & Detect Escalation",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Parse & Deteksi Eskalasi": {
+    "Parse & Detect Escalation": {
       "main": [
         [
           {
-            "node": "Perlu Eskalasi?",
+            "node": "Needs Escalation?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Perlu Eskalasi?": {
+    "Needs Escalation?": {
       "main": [
         [
           {
-            "node": "Set Mode Human",
+            "node": "Set Human Mode",
             "type": "main",
             "index": 0
           },
           {
-            "node": "Kirim Balasan AI ke Customer",
+            "node": "Send AI Reply to Customer",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Set Mode Human": {
+    "Set Human Mode": {
       "main": [
         [
           {
-            "node": "Notif Admin Eskalasi",
+            "node": "Notify Admin of Escalation",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Notif Admin Eskalasi": {
+    "Notify Admin of Escalation": {
       "main": [
         [
           {
-            "node": "Pesan Holding ke Customer",
+            "node": "Holding Message to Customer",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Pesan Holding ke Customer": {
+    "Holding Message to Customer": {
       "main": [
         [
           {
-            "node": "Catat History (Eskalasi)",
+            "node": "Log History (Escalation)",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Kirim Balasan AI ke Customer": {
+    "Send AI Reply to Customer": {
       "main": [
         [
           {
-            "node": "Catat History (AI)",
+            "node": "Log History (AI)",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Catat History (AI)": {
+    "Log History (AI)": {
       "main": [
         [
           {
-            "node": "Selesai",
+            "node": "Done",
             "type": "main",
             "index": 0
           }

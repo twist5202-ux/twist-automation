@@ -3,39 +3,65 @@
   "nodes": [
     {
       "parameters": {
-        "rule": { "interval": [{ "field": "hours", "hoursInterval": 1 }] }
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 1
+            }
+          ]
+        }
       },
       "id": "sched",
-      "name": "Cek Tiap Jam",
+      "name": "Check Every Hour",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
-      "position": [240, 300]
+      "position": [
+        240,
+        300
+      ]
     },
     {
       "parameters": {
         "assignments": {
           "assignments": [
-            { "id": "a1", "name": "wallets", "value": "=[\n  { \"nama\": \"Farm 01\", \"alamat\": \"GANTI_WALLET_FARM\" },\n  { \"nama\": \"Burner TermiX\", \"alamat\": \"GANTI_WALLET_BURNER\" }\n]", "type": "array" },
-            { "id": "a2", "name": "rpc", "value": "https://bsc.publicnode.com/", "type": "string" }
+            {
+              "id": "a1",
+              "name": "wallets",
+              "value": "=[\n  { \"name\": \"Farm 01\", \"address\": \"REPLACE_WALLET_FARM\" },\n  { \"name\": \"Burner TermiX\", \"address\": \"REPLACE_WALLET_BURNER\" }\n]",
+              "type": "array"
+            },
+            {
+              "id": "a2",
+              "name": "rpc",
+              "value": "https://bsc.publicnode.com/",
+              "type": "string"
+            }
           ]
         },
         "options": {}
       },
       "id": "cfg",
-      "name": "Daftar Wallet",
+      "name": "List Wallet",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [460, 300]
+      "position": [
+        460,
+        300
+      ]
     },
     {
       "parameters": {
-        "jsCode": "const out = [];\nfor (const w of $json.wallets) {\n  out.push({ json: { nama: w.nama, alamat: w.alamat, rpc: $json.rpc } });\n}\nreturn out;"
+        "jsCode": "const out = [];\nfor (const w of $json.wallets) {\n  out.push({ json: { name: w.name, address: w.address, rpc: $json.rpc } });\n}\nreturn out;"
       },
       "id": "split",
-      "name": "Pecah Per Wallet",
+      "name": "Split Per Wallet",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [680, 300]
+      "position": [
+        680,
+        300
+      ]
     },
     {
       "parameters": {
@@ -43,44 +69,60 @@
         "url": "={{ $json.rpc }}",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"jsonrpc\": \"2.0\",\n  \"id\": 1,\n  \"method\": \"eth_getBalance\",\n  \"params\": [\"{{ $json.alamat }}\", \"latest\"]\n}",
-        "options": { "timeout": 20000 }
+        "jsonBody": "={\n  \"jsonrpc\": \"2.0\",\n  \"id\": 1,\n  \"method\": \"eth_getBalance\",\n  \"params\": [\"{{ $json.address }}\", \"latest\"]\n}",
+        "options": {
+          "timeout": 20000
+        }
       },
       "id": "rpc-call",
-      "name": "Cek Saldo On-Chain",
+      "name": "Check On-Chain Balance",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [900, 300]
+      "position": [
+        900,
+        300
+      ]
     },
     {
       "parameters": {
-        "jsCode": "// Hex -> BNB -> USD (estimasi pakai harga BNB)\nconst hex = $json.result || '0x0';\nconst wei = BigInt(hex);\nconst bnb = Number(wei) / 1e18;\nconst hargaBnb = 730; // ganti kalau mau akurat — bisa fetch dari API\nconst usd = bnb * hargaBnb;\n\nconst nama = $('Pecah Per Wallet').item.json.nama;\nconst alamat = $('Pecah Per Wallet').item.json.alamat;\n\nreturn [{\n  json: {\n    nama,\n    alamat,\n    bnb: bnb.toFixed(8),\n    usd: usd.toFixed(2),\n    pesan: '💼 *SALDO WALLET*\\n\\n' + nama + '\\n' + alamat.slice(0,10) + '...' + alamat.slice(-6) + '\\n\\nSaldo: ' + bnb.toFixed(8) + ' BNB\\nEstimasi: $' + usd.toFixed(2) + '\\n\\nWaktu: ' + new Date().toISOString()\n  }\n}];"
+        "jsCode": "// Hex -> BNB -> USD (estimated using the BNB price)\nconst hex = $json.result || '0x0';\nconst wei = BigInt(hex);\nconst bnb = Number(wei) / 1e18;\nconst bnbPrice = 730; // change for accuracy — or fetch from an API\nconst usd = bnb * bnbPrice;\n\nconst name = $('Split Per Wallet').item.json.name;\nconst address = $('Split Per Wallet').item.json.address;\n\nreturn [{\n  json: {\n    name,\n    address,\n    bnb: bnb.toFixed(8),\n    usd: usd.toFixed(2),\n    message: '💼 *WALLET BALANCE*\\n\\n' + name + '\\n' + address.slice(0,10) + '...' + address.slice(-6) + '\\n\\nBalance: ' + bnb.toFixed(8) + ' BNB\\nEstimated: $' + usd.toFixed(2) + '\\n\\nTime: ' + new Date().toISOString()\n  }\n}];\n"
       },
       "id": "fmt",
-      "name": "Format Saldo",
+      "name": "Format Balance",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1120, 300]
+      "position": [
+        1120,
+        300
+      ]
     },
     {
       "parameters": {
         "operation": "sendMessage",
-        "chatId": "GANTI_CHAT_ID",
-        "text": "={{ $json.pesan }}",
-        "additionalFields": { "parse_mode": "Markdown" }
+        "chatId": "REPLACE_CHAT_ID",
+        "text": "={{ $json.message }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
       },
       "id": "send",
-      "name": "Kirim Laporan Saldo",
+      "name": "Send Balance Report",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
-      "position": [1340, 300],
+      "position": [
+        1340,
+        300
+      ],
       "credentials": {
-        "telegramApi": { "id": "GANTI_CREDENTIAL_ID", "name": "Telegram Bot" }
+        "telegramApi": {
+          "id": "REPLACE_CREDENTIAL_ID",
+          "name": "Telegram Bot"
+        }
       }
     },
     {
       "parameters": {
-        "content": "## CRYPTO 02 — Wallet Balance Monitor\n\n**Alur:**\nTiap jam → cek saldo semua wallet di daftar → kirim laporan Telegram\n\n**Yang diedit:**\n- `wallets` di node *Daftar Wallet* — tambah wallet lo\n- `hargaBnb` di node *Format Saldo* — atau sambungkan ke API harga\n\n**Butuh:**\n- Telegram bot token + chat ID\n- Tidak butuh private key — cuma baca saldo publik\n\n**Upgrade:**\nTambah node *eth_call* untuk cek saldo token ERC-20 (bukan cuma BNB).\n\n**Cocok buat:**\n- Airdrop farmer (pantau banyak wallet)\n- Trader (pantau wallet utama)\n- Siapa pun yang mau kabar kalau saldo berubah",
+        "content": "## CRYPTO 02 — Wallet Balance Monitor\n\n**Flow:**\nEvery hour → check the balance of every wallet in the list → send a Telegram report\n\n**What to edit:**\n- `wallets` in the *Wallet List* node — add your wallets\n- `hargaBnb` in the *Format Balance* node — or connect it to a price API\n\n**Requires:**\n- Telegram bot token + chat ID\n- No private key needed — it only reads public balances\n\n**Upgrade:**\nAdd an *eth_call* node to check ERC-20 token balances (not just BNB).\n\n**Good for:**\n- Airdrop farmers (monitor many wallets)\n- Traders (monitor a main wallet)\n- Anyone who wants to know when a balance changes",
         "height": 400,
         "width": 620,
         "color": 4
@@ -89,17 +131,72 @@
       "name": "Panduan",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
-      "position": [160, 100]
+      "position": [
+        160,
+        100
+      ]
     }
   ],
   "connections": {
-    "Cek Tiap Jam": { "main": [[{ "node": "Daftar Wallet", "type": "main", "index": 0 }]] },
-    "Daftar Wallet": { "main": [[{ "node": "Pecah Per Wallet", "type": "main", "index": 0 }]] },
-    "Pecah Per Wallet": { "main": [[{ "node": "Cek Saldo On-Chain", "type": "main", "index": 0 }]] },
-    "Cek Saldo On-Chain": { "main": [[{ "node": "Format Saldo", "type": "main", "index": 0 }]] },
-    "Format Saldo": { "main": [[{ "node": "Kirim Laporan Saldo", "type": "main", "index": 0 }]] }
+    "Check Every Hour": {
+      "main": [
+        [
+          {
+            "node": "List Wallet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List Wallet": {
+      "main": [
+        [
+          {
+            "node": "Split Per Wallet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Per Wallet": {
+      "main": [
+        [
+          {
+            "node": "Check On-Chain Balance",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check On-Chain Balance": {
+      "main": [
+        [
+          {
+            "node": "Format Balance",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Balance": {
+      "main": [
+        [
+          {
+            "node": "Send Balance Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
   },
-  "settings": { "executionOrder": "v1" },
+  "settings": {
+    "executionOrder": "v1"
+  },
   "staticData": null,
   "pinData": {}
 }

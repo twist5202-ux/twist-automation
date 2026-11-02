@@ -1,5 +1,5 @@
 {
-  "name": "PROPERTI 03 — Laporan Performa Listing Mingguan",
+  "name": "PROPERTI 03 — Laporan Performance Listing Weekly",
   "nodes": [
     {
       "parameters": {
@@ -13,7 +13,7 @@
         }
       },
       "id": "n1",
-      "name": "Tiap Senin 08:00",
+      "name": "Every Monday 08:00",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
       "position": [
@@ -26,7 +26,7 @@
         "operation": "read",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -37,7 +37,7 @@
         "options": {}
       },
       "id": "n2",
-      "name": "Baca Data Listing",
+      "name": "Read Listing Data",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
@@ -47,17 +47,17 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst rows = $input.all().map(r => r.json);\nconst total = rows.length;\nconst terjual = rows.filter(r => (r.status || '') === 'terjual').length;\nconst view = rows.reduce((s, r) => s + (Number(r.view) || 0), 0);\nconst lead = rows.reduce((s, r) => s + (Number(r.lead) || 0), 0);\nconst konversi = view > 0 ? (lead / view * 100).toFixed(1) : '0';\n\nlet out = 'PERFORMA LISTING MINGGUAN\\n========================\\n\\n';\nout += 'Total listing : ' + total + '\\n';\nout += 'Terjual       : ' + terjual + '\\n';\nout += 'Total view    : ' + view.toLocaleString('id') + '\\n';\nout += 'Total lead    : ' + lead + '\\n';\nout += 'Konversi      : ' + konversi + '%\\n\\n';\n\n// listing terbaik\nconst sorted = [...rows].sort((a, b) => (Number(b.lead)||0) - (Number(a.lead)||0));\nif (sorted.length > 0) {\n  out += 'PALING BANYAK LEAD:\\n';\n  out += '  ' + (sorted[0].judul || sorted[0].properti || '-') +\n         ' (' + (sorted[0].lead || 0) + ' lead)\\n\\n';\n}\nout += 'Listing tanpa lead perlu foto/harga di-review.';\nreturn [{ json: { laporan: out } }];\n"
+        "jsCode": "\nconst rows = $input.all().map(r => r.json);\nconst total = rows.length;\nconst sold = rows.filter(r => (r.status || '') === 'sold').length;\nconst views = rows.reduce((s, r) => s + (Number(r.views) || 0), 0);\nconst leads = rows.reduce((s, r) => s + (Number(r.lead) || 0), 0);\nconst conversion = views > 0 ? (leads / views * 100).toFixed(1) : '0';\n\nlet out = 'WEEKLY LISTING PERFORMANCE\\n========================\\n\\n';\nout += 'Total listings : ' + total + '\\n';\nout += 'Sold        : ' + sold + '\\n';\nout += 'Total views   : ' + viewss.toLocaleString('id') + '\\n';\nout += 'Total leads   : ' + leads + '\\n';\nout += 'Conversion  : ' + conversion + '%\\n\\n';\n\n// listing terbaik\nconst sorted = [...rows].sort((a, b) => (Number(b.leads)||0) - (Number(a.leads)||0));\nif (sorted.length > 0) {\n  out += 'MOST LEADS:\\n';\n  out += '  ' + (sorted[0].judul || sorted[0].property || '-') +\n         ' (' + (sorted[0].leads || 0) + ' lead)\\n\\n';\n}\nout += 'Listings without leads need photos/price reviewed.';\nreturn [{ json: { report: out } }];\n"
       },
       "id": "n3",
-      "name": "Hitung Performa",
+      "name": "Calculate Performance",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         180,
         300
       ],
-      "notes": "Hitung view, lead, konversi per listing."
+      "notes": "Calculate view, lead, conversion per listing."
     },
     {
       "parameters": {
@@ -68,7 +68,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -78,18 +78,18 @@
           "parameters": [
             {
               "name": "target",
-              "value": "GANTI_NOMOR_WA_ADMIN"
+              "value": "REPLACE_ADMIN_WHATSAPP_NUMBER"
             },
             {
               "name": "message",
-              "value": "={{$json.laporan}}"
+              "value": "={{$json.report}}"
             }
           ]
         },
         "options": {}
       },
       "id": "n4",
-      "name": "Kirim Laporan",
+      "name": "Send Report",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -99,33 +99,33 @@
     }
   ],
   "connections": {
-    "Tiap Senin 08:00": {
+    "Every Monday 08:00": {
       "main": [
         [
           {
-            "node": "Baca Data Listing",
+            "node": "Read Listing Data",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Baca Data Listing": {
+    "Read Listing Data": {
       "main": [
         [
           {
-            "node": "Hitung Performa",
+            "node": "Calculate Performance",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Hitung Performa": {
+    "Calculate Performance": {
       "main": [
         [
           {
-            "node": "Kirim Laporan",
+            "node": "Send Report",
             "type": "main",
             "index": 0
           }

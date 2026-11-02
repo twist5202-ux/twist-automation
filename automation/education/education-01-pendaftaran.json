@@ -1,42 +1,42 @@
 {
-  "name": "EDUCATION 01 — Pendaftaran Siswa Baru (Auto Konfirmasi)",
+  "name": "EDUCATION 01 — Registration Siswa New (Auto Confirm)",
   "nodes": [
     {
       "parameters": {
-        "path": "edu-daftar",
+        "path": "edu-list",
         "httpMethod": "POST",
         "options": {}
       },
       "id": "n1",
-      "name": "Form Pendaftaran",
+      "name": "Registration Form",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
         -300,
         300
       ],
-      "webhookId": "edu-daftar"
+      "webhookId": "edu-list"
     },
     {
       "parameters": {
-        "jsCode": "\nconst b = $input.first().json.body || $input.first().json;\nreturn [{ json: {\n  nama: b.nama || 'Calon siswa',\n  orang_tua: b.orang_tua || b.parent || '-',\n  wa: String(b.wa || b.phone || '').replace(/[^0-9]/g, ''),\n  program: b.program || 'Reguler',\n  jenjang: b.jenjang || 'SD',\n  asal_sekolah: b.asal_sekolah || '-',\n  waktu: new Date().toLocaleString('id-ID')\n}}];\n"
+        "jsCode": "\nconst b = $input.first().json.body || $input.first().json;\nreturn [{ json: {\n  name: b.name || 'Prospective siswa',\n  orang_tua: b.orang_tua || b.parent || '-',\n  WhatsApp: String(b.WhatsApp || b.phone || '').replace(/[^0-9]/g, ''),\n  program: b.program || 'Reguler',\n  jenjang: b.jenjang || 'SD',\n  asal_sekolah: b.asal_sekolah || '-',\n  time: new Date().toLocaleString('en-US')\n}}];\n"
       },
       "id": "n2",
-      "name": "Normalize Pendaftar",
+      "name": "Normalize Registrant",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         -60,
         300
       ],
-      "notes": "Samakan format form pendaftaran."
+      "notes": "Samakan format form registration."
     },
     {
       "parameters": {
         "operation": "append",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -51,7 +51,7 @@
         "options": {}
       },
       "id": "n3",
-      "name": "Catat Pendaftar",
+      "name": "Log Registrant",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
@@ -68,7 +68,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -82,14 +82,14 @@
             },
             {
               "name": "message",
-              "value": "Terima kasih sudah mendaftarkan {{$json.nama}} 🙏\\n\\nPendaftaran kami terima:\\nProgram : {{$json.program}}\\nJenjang : {{$json.jenjang}}\\nWaktu   : {{$json.waktu}}\\n\\nTim kami akan hubungi lo dalam 1x24 jam untuk jadwal tes masuk dan wawancara. Kalau ada pertanyaan, balas chat ini ya."
+              "value": "Thank you for registering {{$json.name}} 🙏\\n\\nWe have received the registration:\\nProgram : {{$json.program}}\\nLevel   : {{$json.jenjang}}\\nWaktu   : {{$json.time}}\\n\\nOur team will contact you within 1x24 hours to schedule the entrance test and interview. If you have any questions, just reply to this chat."
             }
           ]
         },
         "options": {}
       },
       "id": "n4",
-      "name": "Konfirmasi ke Orang Tua",
+      "name": "Confirm to Parent",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -106,7 +106,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -116,18 +116,18 @@
           "parameters": [
             {
               "name": "target",
-              "value": "GANTI_NOMOR_WA_ADMIN"
+              "value": "REPLACE_ADMIN_WHATSAPP_NUMBER"
             },
             {
               "name": "message",
-              "value": "PENDAFTARAN BARU\\n================\\nNama    : {{$('Normalize Pendaftar').first().json.nama}}\\nProgram : {{$('Normalize Pendaftar').first().json.program}}\\nJenjang : {{$('Normalize Pendaftar').first().json.jenjang}}\\nWA      : {{$('Normalize Pendaftar').first().json.wa}}\\n\\nHubungi dalam 1x24 jam."
+              "value": "NEW REGISTRATION\\n================\\nNama    : {{$('Normalize Registrant').first().json.name}}\\nProgram : {{$('Normalize Registrant').first().json.program}}\\nJenjang : {{$('Normalize Registrant').first().json.jenjang}}\\nWA      : {{$('Normalize Registrant').first().json.WhatsApp}}\\n\\nContact within 1x24 hours."
             }
           ]
         },
         "options": {}
       },
       "id": "n5",
-      "name": "Notif Admin",
+      "name": "Notify Admin",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -137,44 +137,44 @@
     }
   ],
   "connections": {
-    "Form Pendaftaran": {
+    "Registration Form": {
       "main": [
         [
           {
-            "node": "Normalize Pendaftar",
+            "node": "Normalize Registrant",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Normalize Pendaftar": {
+    "Normalize Registrant": {
       "main": [
         [
           {
-            "node": "Catat Pendaftar",
+            "node": "Log Registrant",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Catat Pendaftar": {
+    "Log Registrant": {
       "main": [
         [
           {
-            "node": "Konfirmasi ke Orang Tua",
+            "node": "Confirm to Parent",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Konfirmasi ke Orang Tua": {
+    "Confirm to Parent": {
       "main": [
         [
           {
-            "node": "Notif Admin",
+            "node": "Notify Admin",
             "type": "main",
             "index": 0
           }

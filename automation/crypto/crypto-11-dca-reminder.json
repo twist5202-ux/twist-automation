@@ -1,5 +1,5 @@
 {
-  "name": "CRYPTO 11 — DCA Reminder (Pengingat Beli Berkala)",
+  "name": "CRYPTO 11 — DCA Reminder (Reminder Buy Berkala)",
   "nodes": [
     {
       "parameters": {
@@ -13,7 +13,7 @@
         }
       },
       "id": "n1",
-      "name": "Tiap Senin 09:00",
+      "name": "Every Monday 09:00",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.1,
       "position": [
@@ -27,7 +27,7 @@
         "options": {}
       },
       "id": "n2",
-      "name": "Cek Harga Sekarang",
+      "name": "Check Current Price",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -37,10 +37,10 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst d = $input.first().json;\nconst btc = d.bitcoin;\nconst perubahan = btc.usd_24h_change.toFixed(2);\nconst arah = btc.usd_24h_change >= 0 ? '📈' : '📉';\n\nlet out = 'DCA REMINDER — SENIN\\n==================\\n\\n';\nout += 'BTC sekarang : $' + btc.usd.toLocaleString('id') + '\\n';\nout += '24 jam        : ' + arah + ' ' + perubahan + '%\\n\\n';\nout += 'Waktunya DCA mingguan!\\n';\nout += 'Nominal rencana: $GANTI_NOMINAL_DCA\\n\\n';\nif (btc.usd_24h_change < -5) {\n  out += '💡 Harga turun ' + Math.abs(perubahan) + '% — peluang bagus buat beli.';\n} else if (btc.usd_24h_change > 5) {\n  out += '⚠️ Harga naik ' + perubahan + '% — pertimbangkan kurangin size.';\n} else {\n  out += '👌 Harga relatif stabil — lanjut sesuai rencana.';\n}\nreturn [{ json: { pesan: out } }];\n"
+        "jsCode": "\nconst d = $input.first().json;\nconst btc = d.bitcoin;\nconst change = btc.usd_24h_change.toFixed(2);\nconst direction = btc.usd_24h_change >= 0 ? '📈' : '📉';\n\nlet out = 'DCA REMINDER — MONDAY\\n===================\\n\\n';\nout += 'BTC now     : $' + btc.usd.toLocaleString('en-US') + '\\n';\nout += '24h change  : ' + direction + ' ' + change + '%\\n\\n';\nout += 'Time for your weekly DCA!\\n';\nout += 'Planned amount: $REPLACE_DCA_AMOUNT\\n\\n';\nif (btc.usd_24h_change < -5) {\n  out += '💡 Price down ' + Math.abs(change) + '% — a good chance to buy.';\n} else if (btc.usd_24h_change > 5) {\n  out += '⚠️ Price up ' + change + '% — consider reducing the size.';\n} else {\n  out += '👌 Price relatively stable — stick to the plan.';\n}\nreturn [{ json: { message: out } }];\n"
       },
       "id": "n3",
-      "name": "Susun Pesan DCA",
+      "name": "Build DCA Message",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -57,7 +57,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -67,18 +67,18 @@
           "parameters": [
             {
               "name": "target",
-              "value": "GANTI_NOMOR_WA_ADMIN"
+              "value": "REPLACE_ADMIN_WHATSAPP_NUMBER"
             },
             {
               "name": "message",
-              "value": "={{$json.pesan}}"
+              "value": "={{$json.message}}"
             }
           ]
         },
         "options": {}
       },
       "id": "n4",
-      "name": "Kirim Reminder DCA",
+      "name": "Send Reminder DCA",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -88,33 +88,33 @@
     }
   ],
   "connections": {
-    "Tiap Senin 09:00": {
+    "Every Monday 09:00": {
       "main": [
         [
           {
-            "node": "Cek Harga Sekarang",
+            "node": "Check Current Price",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Cek Harga Sekarang": {
+    "Check Current Price": {
       "main": [
         [
           {
-            "node": "Susun Pesan DCA",
+            "node": "Build DCA Message",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Susun Pesan DCA": {
+    "Build DCA Message": {
       "main": [
         [
           {
-            "node": "Kirim Reminder DCA",
+            "node": "Send Reminder DCA",
             "type": "main",
             "index": 0
           }

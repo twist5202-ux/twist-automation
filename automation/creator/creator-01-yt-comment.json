@@ -1,5 +1,5 @@
 {
-  "name": "CREATOR 01 — YouTube Comment Monitor (Komentar Baru → Notif)",
+  "name": "CREATOR 01 — YouTube Comment Monitor (Komentar New → Notification)",
   "nodes": [
     {
       "parameters": {
@@ -13,7 +13,7 @@
         }
       },
       "id": "n1",
-      "name": "Cek Tiap 30 Menit",
+      "name": "Check Every 30 Minutes",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.1,
       "position": [
@@ -23,11 +23,11 @@
     },
     {
       "parameters": {
-        "url": "https://www.googleapis.com/youtube/v3/commentThreads?part=snippet&videoId=GANTI_VIDEO_ID&maxResults=10&order=time&key=GANTI_API_KEY_YOUTUBE",
+        "url": "https://www.googleapis.com/youtube/v3/commentThreads?part=snippet&videoId=REPLACE_VIDEO_ID&maxResults=10&order=time&key=REPLACE_API_KEY_YOUTUBE",
         "options": {}
       },
       "id": "n2",
-      "name": "Ambil Komentar Terbaru",
+      "name": "Fetch Latest Comments",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -37,10 +37,10 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst items = $input.first().json.items || [];\nconst baru = [];\nfor (const it of items) {\n  const c = it.snippet.topLevelComment.snippet;\n  const umur = (Date.now() - new Date(c.publishedAt).getTime()) / 60000;\n  if (umur <= 35) {\n    baru.push({\n      json: {\n        author: c.authorDisplayName,\n        text: c.textDisplay.slice(0, 150),\n        like: c.likeCount,\n        video: it.snippet.videoId\n      }\n    });\n  }\n}\nreturn baru;\n"
+        "jsCode": "\nconst items = $input.first().json.items || [];\nconst new = [];\nfor (const it of items) {\n  const c = it.snippet.topLevelComment.snippet;\n  const ageMinutes = (Date.now() - new Date(c.publishedAt).getTime()) / 60000;\n  if (ageMinutes <= 35) {\n    new.push({\n      json: {\n        author: c.authorDisplayName,\n        text: c.textDisplay.slice(0, 150),\n        like: c.likeCount,\n        video: it.snippet.videoId\n      }\n    });\n  }\n}\nreturn new;\n"
       },
       "id": "n3",
-      "name": "Filter Komentar Baru",
+      "name": "Filter New Comments",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -57,7 +57,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -67,18 +67,18 @@
           "parameters": [
             {
               "name": "target",
-              "value": "GANTI_NOMOR_WA_ADMIN"
+              "value": "REPLACE_ADMIN_WHATSAPP_NUMBER"
             },
             {
               "name": "message",
-              "value": "💬 KOMENTAR BARU DI YOUTUBE\\n\\nDari : {{$json.author}}\\nLike : {{$json.like}}\\n\\n{{$json.text}}\\n\\nyoutube.com/watch?v={{$json.video}}"
+              "value": "💬 NEW YOUTUBE COMMENT\\n\\nFrom: {{$json.author}}\\nLikes: {{$json.like}}\\n\\n{{$json.text}}\\n\\nyoutube.com/watch?v={{$json.video}}"
             }
           ]
         },
         "options": {}
       },
       "id": "n4",
-      "name": "Notif Komentar Baru",
+      "name": "Notify New Comment",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -88,33 +88,33 @@
     }
   ],
   "connections": {
-    "Cek Tiap 30 Menit": {
+    "Check Every 30 Minutes": {
       "main": [
         [
           {
-            "node": "Ambil Komentar Terbaru",
+            "node": "Fetch Latest Comments",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Ambil Komentar Terbaru": {
+    "Fetch Latest Comments": {
       "main": [
         [
           {
-            "node": "Filter Komentar Baru",
+            "node": "Filter New Comments",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Filter Komentar Baru": {
+    "Filter New Comments": {
       "main": [
         [
           {
-            "node": "Notif Komentar Baru",
+            "node": "Notify New Comment",
             "type": "main",
             "index": 0
           }

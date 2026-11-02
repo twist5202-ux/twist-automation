@@ -1,5 +1,5 @@
 {
-  "name": "MARKETPLACE 02 — Stok Multi-Platform Sync (Habis → Alert)",
+  "name": "MARKETPLACE 02 — Stock Multi-Platform Sync (Out → Alert)",
   "nodes": [
     {
       "parameters": {
@@ -13,7 +13,7 @@
         }
       },
       "id": "n1",
-      "name": "Cek Tiap Jam",
+      "name": "Check Every Hour",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
       "position": [
@@ -26,7 +26,7 @@
         "operation": "read",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -37,7 +37,7 @@
         "options": {}
       },
       "id": "n2",
-      "name": "Baca Stok Lokal",
+      "name": "Read Local Stock",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
@@ -47,17 +47,17 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst rows = $input.all().map(r => r.json);\nreturn rows.filter(r => Number(r.stok) <= Number(r.min_stok || 5))\n  .map(r => {\n    const sisa = Number(r.stok);\n    const min = Number(r.min_stok || 5);\n    let level = 'KUNING';\n    if (sisa === 0) level = 'MERAH — HABIS';\n    else if (sisa <= min / 2) level = 'ORANYE';\n    return { json: {\n      sku: r.sku, produk: r.produk, stok: sisa, min_stok: min, level\n    }};\n  });\n"
+        "jsCode": "\nconst rows = $input.all().map(r => r.json);\nreturn rows.filter(r => Number(r.stock) <= Number(r.min_stock || 5))\n  .map(r => {\n    const stock = Number(r.stock);\n    const min = Number(r.min_stock || 5);\n    let level = 'YELLOW';\n    if (stock === 0) level = 'RED — OUT OF STOCK';\n    else if (stock <= min / 2) level = 'ORANGE';\n    return { json: {\n      sku: r.sku, product: r.product, stock: stock, min_stock: min, level\n    }};\n  });\n"
       },
       "id": "n3",
-      "name": "Cek Stok Menipis",
+      "name": "Check Stock Low",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         180,
         300
       ],
-      "notes": "Bandingkan stok aktual vs minimum."
+      "notes": "Bandingkan stock aktual vs minimum."
     },
     {
       "parameters": {
@@ -70,7 +70,7 @@
           "conditions": [
             {
               "id": "n4-c",
-              "leftValue": "={{ $json.stok }}",
+              "leftValue": "={{ $json.stock }}",
               "rightValue": "0",
               "operator": {
                 "type": "number",
@@ -82,7 +82,7 @@
         }
       },
       "id": "n4",
-      "name": "Stok Kritis?",
+      "name": "Stock Critical?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
@@ -99,7 +99,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -109,18 +109,18 @@
           "parameters": [
             {
               "name": "target",
-              "value": "GANTI_NOMOR_WA_ADMIN"
+              "value": "REPLACE_ADMIN_WHATSAPP_NUMBER"
             },
             {
               "name": "message",
-              "value": "STOK HABIS\\n==========\\nSKU    : {{$json.sku}}\\nProduk : {{$json.produk}}\\nStok   : {{$json.stok}}\\nMinimum: {{$json.min_stok}}\\n\\nListing perlu di-nonaktifkan atau restock segera."
+              "value": "OUT OF STOCK\\n==========\\nSKU    : {{$json.sku}}\\nProduct : {{$json.product}}\\nStock  : {{$json.stock}}\\nMinimum: {{$json.min_stock}}\\n\\nDeactivate the listing or restock immediately."
             }
           ]
         },
         "options": {}
       },
       "id": "n5",
-      "name": "Alert Stok Habis",
+      "name": "Alert Out of Stock",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -137,7 +137,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -147,18 +147,18 @@
           "parameters": [
             {
               "name": "target",
-              "value": "GANTI_NOMOR_WA_ADMIN"
+              "value": "REPLACE_ADMIN_WHATSAPP_NUMBER"
             },
             {
               "name": "message",
-              "value": "STOK MENIPIS\\n===========\\nSKU    : {{$json.sku}}\\nProduk : {{$json.produk}}\\nSisa   : {{$json.stok}} (min {{$json.min_stok}})\\n\\nPertimbangkan restock."
+              "value": "LOW STOCK\\n===========\\nSKU    : {{$json.sku}}\\nProduct : {{$json.product}}\\nLeft   : {{$json.stock}} (min {{$json.min_stock}})\\n\\nConsider restocking."
             }
           ]
         },
         "options": {}
       },
       "id": "n6",
-      "name": "Alert Stok Menipis",
+      "name": "Alert Low Stock",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -171,7 +171,7 @@
         "operation": "update",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -190,7 +190,7 @@
         "options": {}
       },
       "id": "n7",
-      "name": "Update Status Stok",
+      "name": "Update Stock Status",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
@@ -200,71 +200,71 @@
     }
   ],
   "connections": {
-    "Cek Tiap Jam": {
+    "Check Every Hour": {
       "main": [
         [
           {
-            "node": "Baca Stok Lokal",
+            "node": "Read Local Stock",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Baca Stok Lokal": {
+    "Read Local Stock": {
       "main": [
         [
           {
-            "node": "Cek Stok Menipis",
+            "node": "Check Stock Low",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Cek Stok Menipis": {
+    "Check Stock Low": {
       "main": [
         [
           {
-            "node": "Stok Kritis?",
+            "node": "Stock Critical?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Stok Kritis?": {
+    "Stock Critical?": {
       "main": [
         [
           {
-            "node": "Alert Stok Habis",
+            "node": "Alert Out of Stock",
             "type": "main",
             "index": 0
           },
           {
-            "node": "Alert Stok Menipis",
+            "node": "Alert Low Stock",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Alert Stok Habis": {
+    "Alert Out of Stock": {
       "main": [
         [
           {
-            "node": "Update Status Stok",
+            "node": "Update Stock Status",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Alert Stok Menipis": {
+    "Alert Low Stock": {
       "main": [
         [
           {
-            "node": "Update Status Stok",
+            "node": "Update Stock Status",
             "type": "main",
             "index": 0
           }

@@ -1,27 +1,27 @@
 {
-  "name": "PRODUKTIVITAS 02 — Expense Tracker (Catat Pengeluaran dari WA)",
+  "name": "PRODUKTIVITAS 02 — Expense Tracker (Log Pengeluaran from WA)",
   "nodes": [
     {
       "parameters": {
-        "path": "catat-pengeluaran",
+        "path": "log-expense",
         "options": {}
       },
       "id": "n1",
-      "name": "Pesan Pengeluaran Masuk",
+      "name": "Incoming Expense Message",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
         -200,
         300
       ],
-      "webhookId": "catat-pengeluaran"
+      "webhookId": "log-pengeluaran"
     },
     {
       "parameters": {
-        "jsCode": "\nconst msg = $input.first().json.message || '';\n// format: \"beli kopi 25rb\" atau \"beli kopi 25000\"\nconst m = msg.match(/(\\d+)\\s*(rb|ribu|k)?/i);\nlet jumlah = 0;\nif (m) {\n  jumlah = Number(m[1]);\n  if (m[2]) jumlah *= 1000;\n}\nconst keterangan = msg.replace(/(\\d+)\\s*(rb|ribu|k)?/i, '').trim() || 'lainnya';\n\nlet kategori = 'lainnya';\nconst k = keterangan.toLowerCase();\nif (/makan|minum|kopi|ayam|nasgor|warteg|jajan/.test(k)) kategori = 'makan';\nelse if (/bensin|grab|gojek|transport|parkir|tol/.test(k)) kategori = 'transport';\nelse if (/pulsa|token|listrik|internet|wifi/.test(k)) kategori = 'tagihan';\nelse if (/baju|sepatu|belanja|shopee|tokped/.test(k)) kategori = 'belanja';\n\nreturn [{ json: {\n  jumlah,\n  keterangan,\n  kategori,\n  waktu: new Date().toLocaleString('id')\n} }];\n"
+        "jsCode": "\nconst msg = $input.first().json.message || '';\n// format: \"buy coffee 25rb\" or \"buy coffee 25000\"\nconst m = msg.match(/(\\d+)\\s*(rb|thousand|k)?/i);\nlet amount = 0;\nif (m) {\n  amount = Number(m[1]);\n  if (m[2]) amount *= 1000;\n}\nconst description = msg.replace(/(\\d+)\\s*(rb|thousand|k)?/i, '').trim() || 'other';\n\nlet category = 'other';\nconst k = description.toLowerCase();\nif (/food|drink|coffee|chicken|rice|snack|warteg/.test(k)) category = 'food';\nelse if (/fuel|grab|gojek|transport|parking|toll/.test(k)) category = 'transport';\nelse if (/credit|token|electricity|internet|wifi/.test(k)) category = 'bills';\nelse if (/clothes|shoes|shopping|shopee|tokped/.test(k)) category = 'shopping';\n\nreturn [{ json: {\n  amount,\n  description,\n  category,\n  time: new Date().toLocaleString('en-US')\n} }];\n"
       },
       "id": "n2",
-      "name": "Parse Jumlah & Kategori",
+      "name": "Parse Amount & Category",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -34,12 +34,12 @@
         "operation": "append",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
           "__rl": true,
-          "value": "Pengeluaran",
+          "value": "Expense",
           "mode": "name"
         },
         "columns": {
@@ -49,7 +49,7 @@
         "options": {}
       },
       "id": "n3",
-      "name": "Catat ke Sheets",
+      "name": "Log to Sheets",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
@@ -66,7 +66,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -76,18 +76,18 @@
           "parameters": [
             {
               "name": "target",
-              "value": "GANTI_NOMOR_WA_ADMIN"
+              "value": "REPLACE_ADMIN_WHATSAPP_NUMBER"
             },
             {
               "name": "message",
-              "value": "✅ Tercatat\\n\\nKeterangan : {{$json.keterangan}}\\nJumlah     : Rp {{$json.jumlah}}\\nKategori   : {{$json.kategori}}\\nWaktu      : {{$json.waktu}}"
+              "value": "✅ Logged\\n\\nKeterangan : {{$json.description}}\\nAmount     : Rp {{$json.amount}}\\nKategori   : {{$json.category}}\\nWaktu      : {{$json.time}}"
             }
           ]
         },
         "options": {}
       },
       "id": "n4",
-      "name": "Konfirmasi Tercatat",
+      "name": "Confirm Logged",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -97,33 +97,33 @@
     }
   ],
   "connections": {
-    "Pesan Pengeluaran Masuk": {
+    "Incoming Expense Message": {
       "main": [
         [
           {
-            "node": "Parse Jumlah & Kategori",
+            "node": "Parse Amount & Category",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Parse Jumlah & Kategori": {
+    "Parse Amount & Category": {
       "main": [
         [
           {
-            "node": "Catat ke Sheets",
+            "node": "Log to Sheets",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Catat ke Sheets": {
+    "Log to Sheets": {
       "main": [
         [
           {
-            "node": "Konfirmasi Tercatat",
+            "node": "Confirm Logged",
             "type": "main",
             "index": 0
           }

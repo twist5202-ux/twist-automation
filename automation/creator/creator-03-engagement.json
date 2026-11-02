@@ -1,5 +1,5 @@
 {
-  "name": "CREATOR 03 — Laporan Engagement Mingguan (Multi Platform)",
+  "name": "CREATOR 03 — Laporan Engagement Weekly (Multi Platform)",
   "nodes": [
     {
       "parameters": {
@@ -13,7 +13,7 @@
         }
       },
       "id": "n1",
-      "name": "Tiap Senin 08:00",
+      "name": "Every Monday 08:00",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.1,
       "position": [
@@ -23,11 +23,11 @@
     },
     {
       "parameters": {
-        "url": "https://www.googleapis.com/youtube/v3/channels?part=statistics&id=GANTI_CHANNEL_ID&key=GANTI_API_KEY_YOUTUBE",
+        "url": "https://www.googleapis.com/youtube/v3/channels?part=statistics&id=REPLACE_CHANNEL_ID&key=REPLACE_API_KEY_YOUTUBE",
         "options": {}
       },
       "id": "n2",
-      "name": "Statistik Channel YouTube",
+      "name": "YouTube Channel Stats",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -37,10 +37,10 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst d = $input.first().json;\nconst s = d.items?.[0]?.statistics || {};\nconst subs = Number(s.subscriberCount || 0);\nconst views = Number(s.viewCount || 0);\nconst videos = Number(s.videoCount || 0);\nconst avg = videos > 0 ? Math.round(views / videos) : 0;\n\nlet out = 'LAPORAN MINGGUAN\\n================\\n\\n';\nout += 'YOUTUBE\\n';\nout += '  Subscriber : ' + subs.toLocaleString('id') + '\\n';\nout += '  Total view : ' + views.toLocaleString('id') + '\\n';\nout += '  Video      : ' + videos + '\\n';\nout += '  Rata-view  : ' + avg.toLocaleString('id') + '\\n\\n';\nout += 'Target minggu depan: +' + Math.max(100, Math.round(subs * 0.05)) + ' subscriber';\nreturn [{ json: { laporan: out } }];\n"
+        "jsCode": "\nconst d = $input.first().json;\nconst s = d.items?.[0]?.statistics || {};\nconst subs = Number(s.subscriberCount || 0);\nconst views = Number(s.viewCount || 0);\nconst videos = Number(s.videoCount || 0);\nconst avg = videos > 0 ? Math.round(views / videos) : 0;\n\nlet out = 'WEEKLY REPORT\\n============\\n\\n';\nout += 'YOUTUBE\\n';\nout += '  Subscribers : ' + subs.toLocaleString('en-US') + '\\n';\nout += '  Total views : ' + views.toLocaleString('en-US') + '\\n';\nout += '  Videos      : ' + videos + '\\n';\nout += '  Avg views   : ' + avg.toLocaleString('en-US') + '\\n\\n';\nout += 'Target next week: +' + Math.max(100, Math.round(subs * 0.05)) + ' subscribers';\nreturn [{ json: { report: out } }];\n"
       },
       "id": "n3",
-      "name": "Susun Laporan",
+      "name": "Build Report",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -57,7 +57,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -67,18 +67,18 @@
           "parameters": [
             {
               "name": "target",
-              "value": "GANTI_NOMOR_WA_ADMIN"
+              "value": "REPLACE_ADMIN_WHATSAPP_NUMBER"
             },
             {
               "name": "message",
-              "value": "={{$json.laporan}}"
+              "value": "={{$json.report}}"
             }
           ]
         },
         "options": {}
       },
       "id": "n4",
-      "name": "Kirim Laporan",
+      "name": "Send Report",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -88,33 +88,33 @@
     }
   ],
   "connections": {
-    "Tiap Senin 08:00": {
+    "Every Monday 08:00": {
       "main": [
         [
           {
-            "node": "Statistik Channel YouTube",
+            "node": "YouTube Channel Stats",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Statistik Channel YouTube": {
+    "YouTube Channel Stats": {
       "main": [
         [
           {
-            "node": "Susun Laporan",
+            "node": "Build Report",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Susun Laporan": {
+    "Build Report": {
       "main": [
         [
           {
-            "node": "Kirim Laporan",
+            "node": "Send Report",
             "type": "main",
             "index": 0
           }

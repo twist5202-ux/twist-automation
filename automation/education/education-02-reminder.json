@@ -13,7 +13,7 @@
         }
       },
       "id": "n1",
-      "name": "Cek Tiap Pagi 07:00",
+      "name": "Check Every Morning at 07:00",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
       "position": [
@@ -26,7 +26,7 @@
         "operation": "read",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -37,7 +37,7 @@
         "options": {}
       },
       "id": "n2",
-      "name": "Baca Jadwal Kelas",
+      "name": "Read Class Schedule",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
@@ -47,17 +47,17 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst rows = $input.all().map(r => r.json);\nconst hari = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'][new Date().getDay()];\nreturn rows.filter(r => (r.hari || '') === hari)\n  .map(r => ({ json: { ...r, hari } }));\n"
+        "jsCode": "\nconst rows = $input.all().map(r => r.json);\nconst dayName = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][new Date().getDay()];\nreturn rows.filter(r => (r.day || '') === dayName)\n  .map(r => ({ json: { ...r, day: dayName } }));\n"
       },
       "id": "n3",
-      "name": "Filter Kelas Hari Ini",
+      "name": "Filter Today's Classes",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         180,
         300
       ],
-      "notes": "Ambil kelas yang jadwalnya hari ini."
+      "notes": "Fetch kelas that jadwalnya today."
     },
     {
       "parameters": {
@@ -68,7 +68,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -82,14 +82,14 @@
             },
             {
               "name": "message",
-              "value": "PENGINGAT KELAS HARI INI 📚\\n==========================\\nKelas   : {{$json.nama_kelas}}\\nJam     : {{$json.jam}}\\nPengajar: {{$json.pengajar}}\\nTempat  : {{$json.tempat}}\\n\\nJangan lupa bawa buku & alat tulis ya."
+              "value": "CLASS REMINDER TODAY 📚\\n==========================\\nClass   : {{$json.nama_kelas}}\\nTime    : {{$json.hour}}\\nTeacher : {{$json.pengajar}}\\nVenue   : {{$json.tempat}}\\n\\nDo not forget to bring your books and stationery."
             }
           ]
         },
         "options": {}
       },
       "id": "n4",
-      "name": "Reminder Kelas ke Siswa",
+      "name": "Class Reminder to Student",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -102,7 +102,7 @@
         "operation": "read",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -113,7 +113,7 @@
         "options": {}
       },
       "id": "n5",
-      "name": "Baca Tagihan",
+      "name": "Read Bills",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
@@ -123,17 +123,17 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst rows = $input.all().map(r => r.json);\nconst now = new Date();\nreturn rows.filter(r => {\n  if (r.status === 'lunas') return false;\n  const tempo = new Date(r.jatuh_tempo);\n  const sisa = Math.ceil((tempo - now) / 86400000);\n  return sisa <= 3;\n}).map(r => {\n  const sisa = Math.ceil((new Date(r.jatuh_tempo) - now) / 86400000);\n  return { json: { ...r, sisa_hari: sisa } };\n});\n"
+        "jsCode": "\nconst rows = $input.all().map(r => r.json);\nconst now = new Date();\nreturn rows.filter(r => {\n  if (r.status === 'paid') return false;\n  const date = new Date(r.jatuh_tempo);\n  const sisa = Math.ceil((date - now) / 86400000);\n  return sisa <= 3;\n}).map(r => {\n  const sisa = Math.ceil((new Date(r.jatuh_tempo) - now) / 86400000);\n  return { json: { ...r, sisa_hari: sisa } };\n});\n"
       },
       "id": "n6",
-      "name": "Filter Tagihan Jatuh Tempo",
+      "name": "Filter Due Bills",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         180,
         500
       ],
-      "notes": "Tagihan yang jatuh tempo <= 3 hari."
+      "notes": "Tagihan that due date <= 3 hari."
     },
     {
       "parameters": {
@@ -144,7 +144,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -158,14 +158,14 @@
             },
             {
               "name": "message",
-              "value": "PENGINGAT PEMBAYARAN\\n===================\\nSiswa      : {{$json.nama_siswa}}\\nBulan      : {{$json.bulan}}\\nJumlah     : Rp {{$json.jumlah}}\\nJatuh tempo: {{$json.jatuh_tempo}}\\nSisa       : {{$json.sisa_hari}} hari\\n\\nMohon segera diproses. Kalau sudah bayar, kirim bukti transfer ya. Terima kasih 🙏"
+              "value": "PAYMENT REMINDER\\n===================\\nStudent    : {{$json.nama_siswa}}\\nMonth      : {{$json.month}}\\nAmount     : Rp {{$json.amount}}\\nDue date   : {{$json.jatuh_tempo}}\\nDays left  : {{$json.sisa_hari}} days\\n\\nPlease process it as soon as possible. If you have already paid, send the transfer receipt. Thank you 🙏"
             }
           ]
         },
         "options": {}
       },
       "id": "n7",
-      "name": "Reminder Tagihan",
+      "name": "Bill Reminder",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -175,60 +175,60 @@
     }
   ],
   "connections": {
-    "Cek Tiap Pagi 07:00": {
+    "Check Every Morning at 07:00": {
       "main": [
         [
           {
-            "node": "Baca Jadwal Kelas",
+            "node": "Read Class Schedule",
             "type": "main",
             "index": 0
           },
           {
-            "node": "Baca Tagihan",
+            "node": "Read Bills",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Baca Jadwal Kelas": {
+    "Read Class Schedule": {
       "main": [
         [
           {
-            "node": "Filter Kelas Hari Ini",
+            "node": "Filter Today's Classes",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Filter Kelas Hari Ini": {
+    "Filter Today's Classes": {
       "main": [
         [
           {
-            "node": "Reminder Kelas ke Siswa",
+            "node": "Class Reminder to Student",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Baca Tagihan": {
+    "Read Bills": {
       "main": [
         [
           {
-            "node": "Filter Tagihan Jatuh Tempo",
+            "node": "Filter Due Bills",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Filter Tagihan Jatuh Tempo": {
+    "Filter Due Bills": {
       "main": [
         [
           {
-            "node": "Reminder Tagihan",
+            "node": "Bill Reminder",
             "type": "main",
             "index": 0
           }

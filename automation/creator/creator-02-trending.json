@@ -13,7 +13,7 @@
         }
       },
       "id": "n1",
-      "name": "Cek Tiap Pagi 07:00",
+      "name": "Check Every Morning at 07:00",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.1,
       "position": [
@@ -27,7 +27,7 @@
         "options": {}
       },
       "id": "n2",
-      "name": "Ambil Google Trends ID",
+      "name": "Fetch Google Trends ID",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -37,10 +37,10 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst raw = $input.first().json;\n// n8n HTTP node mengembalikan objek; ambil string XML kalau ada\nconst xml = typeof raw === 'string' ? raw : JSON.stringify(raw);\nconst titles = [...xml.matchAll(/<title>(.*?)<\\/title>/g)].map(m => m[1]);\n// buang 2 pertama (header RSS + channel)\nconst top = titles.slice(2, 12);\nlet out = 'TRENDING TOPIC HARI INI\\n=====================\\n';\ntop.forEach((t, i) => { out += (i+1) + '. ' + t.replace(/&amp;/g,'&') + '\\n'; });\nout += '\\n💡 Pilih 1, bikin konten hari ini.';\nreturn [{ json: { laporan: out } }];\n"
+        "jsCode": "\nconst raw = $input.first().json;\n// the n8n HTTP node returns an object; take the XML string if present\nconst xml = typeof raw === 'string' ? raw : JSON.stringify(raw);\nconst titles = [...xml.matchAll(/<title>(.*?)<\\/title>/g)].map(m => m[1]);\n// drop the first 2 (RSS header + channel)\nconst top = titles.slice(2, 12);\nlet out = 'TRENDING TOPIC TODAY\\n=====================\\n';\ntop.forEach((t, i) => { out += (i+1) + '. ' + t.replace(/&amp;/g,'&') + '\\n'; });\nout += '\\n💡 Pick 1 and create content today.';\nreturn [{ json: { report: out } }];\n"
       },
       "id": "n3",
-      "name": "Ekstrak 10 Trending",
+      "name": "Extract 10 Trending",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -57,7 +57,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -67,18 +67,18 @@
           "parameters": [
             {
               "name": "target",
-              "value": "GANTI_NOMOR_WA_ADMIN"
+              "value": "REPLACE_ADMIN_WHATSAPP_NUMBER"
             },
             {
               "name": "message",
-              "value": "={{$json.laporan}}"
+              "value": "={{$json.report}}"
             }
           ]
         },
         "options": {}
       },
       "id": "n4",
-      "name": "Kirim Ide Konten",
+      "name": "Send Content Ideas",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -88,33 +88,33 @@
     }
   ],
   "connections": {
-    "Cek Tiap Pagi 07:00": {
+    "Check Every Morning at 07:00": {
       "main": [
         [
           {
-            "node": "Ambil Google Trends ID",
+            "node": "Fetch Google Trends ID",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Ambil Google Trends ID": {
+    "Fetch Google Trends ID": {
       "main": [
         [
           {
-            "node": "Ekstrak 10 Trending",
+            "node": "Extract 10 Trending",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Ekstrak 10 Trending": {
+    "Extract 10 Trending": {
       "main": [
         [
           {
-            "node": "Kirim Ide Konten",
+            "node": "Send Content Ideas",
             "type": "main",
             "index": 0
           }

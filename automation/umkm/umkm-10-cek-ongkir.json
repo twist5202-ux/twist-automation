@@ -1,22 +1,22 @@
 {
-  "name": "UMKM 10 — Cek Ongkir Otomatis (Customer Chat → Tarif)",
+  "name": "UMKM 10 — Check Shipping Otomatis (Customer Chat → Tarif)",
   "nodes": [
     {
       "parameters": {
-        "url": "https://api.rajaongkir.com/starter/cost?origin=GANTI_KOTA_ASAL&destination={{$json.kota}}&weight={{$json.berat}}&courier=jne",
+        "url": "https://api.rajaongkir.com/starter/cost?origin=REPLACE_KOTA_ASAL&destination={{$json.city}}&weight={{$json.weight}}&courier=jne",
         "options": {},
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             {
               "name": "key",
-              "value": "GANTI_API_KEY_RAJAONGKIR"
+              "value": "REPLACE_RAJAONGKIR_API_KEY"
             }
           ]
         }
       },
       "id": "n1",
-      "name": "Customer Minta Ongkir",
+      "name": "Customer Asks About Shipping",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -26,7 +26,7 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst r = $input.first().json.rajaongkir.results[0].costs;\nlet out = 'CEK ONGKIR\\n\\n';\nfor (const c of r) {\n  out += c.service + ' — Rp ' + c.cost[0].value.toLocaleString('id') + '\\n';\n  out += '  estimasi ' + c.cost[0].etd + ' hari\\n';\n}\nreturn [{ json: { pesan: out } }];\n"
+        "jsCode": "\nconst r = $input.first().json.rajaongkir.results[0].costs;\nlet out = 'SHIPPING RATES\\n==============\\n\\n';\nfor (const c of r) {\n  out += c.service + ' — Rp ' + c.cost[0].value.toLocaleString('en-US') + '\\n';\n  out += '  estimated ' + c.cost[0].etd + ' days\\n';\n}\nreturn [{ json: { message: out } }];\n"
       },
       "id": "n2",
       "name": "Format Tarif",
@@ -46,7 +46,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -56,18 +56,18 @@
           "parameters": [
             {
               "name": "target",
-              "value": "GANTI_NOMOR_WA_ADMIN"
+              "value": "REPLACE_ADMIN_WHATSAPP_NUMBER"
             },
             {
               "name": "message",
-              "value": "={{$json.pesan}}"
+              "value": "={{$json.message}}"
             }
           ]
         },
         "options": {}
       },
       "id": "n3",
-      "name": "Kirim Tarif ke Customer",
+      "name": "Send Rates to Customer",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -77,7 +77,7 @@
     }
   ],
   "connections": {
-    "Customer Minta Ongkir": {
+    "Customer Asks About Shipping": {
       "main": [
         [
           {
@@ -92,7 +92,7 @@
       "main": [
         [
           {
-            "node": "Kirim Tarif ke Customer",
+            "node": "Send Rates to Customer",
             "type": "main",
             "index": 0
           }

@@ -1,5 +1,5 @@
 {
-  "name": "DEVOPS 03 — GitHub Release Notifier (Rilis Baru → Notif)",
+  "name": "DEVOPS 03 — GitHub Release Notifier (Rilis New → Notification)",
   "nodes": [
     {
       "parameters": {
@@ -13,7 +13,7 @@
         }
       },
       "id": "n1",
-      "name": "Cek Tiap 6 Jam",
+      "name": "Check Every 6 Hours",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.1,
       "position": [
@@ -23,11 +23,11 @@
     },
     {
       "parameters": {
-        "url": "https://api.github.com/repos/GANTI_OWNER/GANTI_REPO/releases?per_page=3",
+        "url": "https://api.github.com/repos/REPLACE_OWNER/REPLACE_REPO/releases?per_page=3",
         "options": {}
       },
       "id": "n2",
-      "name": "Ambil Release Terbaru",
+      "name": "Fetch Latest Release",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -40,7 +40,7 @@
         "jsCode": "\nconst rel = $input.first().json;\nconst now = Date.now();\nreturn rel.filter(r => {\n  const t = new Date(r.published_at).getTime();\n  return (now - t) / 3600000 <= 6;\n}).map(r => ({\n  json: {\n    name: r.name || r.tag_name,\n    tag: r.tag_name,\n    author: r.author?.login || '?',\n    url: r.html_url,\n    notes: (r.body || '').slice(0, 200)\n  }\n}));\n"
       },
       "id": "n3",
-      "name": "Filter Rilis 6 Jam Terakhir",
+      "name": "Filter Releases in Last 6 Hours",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -57,7 +57,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -67,18 +67,18 @@
           "parameters": [
             {
               "name": "target",
-              "value": "GANTI_NOMOR_WA_ADMIN"
+              "value": "REPLACE_ADMIN_WHATSAPP_NUMBER"
             },
             {
               "name": "message",
-              "value": "🚀 RILIS BARU\\n\\nRepo   : GANTI_OWNER/GANTI_REPO\\nVersi  : {{$json.tag}}\\nNama   : {{$json.name}}\\nAuthor : {{$json.author}}\\n\\n{{$json.notes}}\\n\\n{{$json.url}}"
+              "value": "🚀 NEW RELEASE\\n\\nRepo   : REPLACE_OWNER/REPLACE_REPO\\nTag    : {{$json.tag}}\\nNama   : {{$json.name}}\\nAuthor : {{$json.author}}\\n\\n{{$json.notes}}\\n\\n{{$json.url}}"
             }
           ]
         },
         "options": {}
       },
       "id": "n4",
-      "name": "Notif Rilis Baru",
+      "name": "Notify New Release",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -88,33 +88,33 @@
     }
   ],
   "connections": {
-    "Cek Tiap 6 Jam": {
+    "Check Every 6 Hours": {
       "main": [
         [
           {
-            "node": "Ambil Release Terbaru",
+            "node": "Fetch Latest Release",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Ambil Release Terbaru": {
+    "Fetch Latest Release": {
       "main": [
         [
           {
-            "node": "Filter Rilis 6 Jam Terakhir",
+            "node": "Filter Releases in Last 6 Hours",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Filter Rilis 6 Jam Terakhir": {
+    "Filter Releases in Last 6 Hours": {
       "main": [
         [
           {
-            "node": "Notif Rilis Baru",
+            "node": "Notify New Release",
             "type": "main",
             "index": 0
           }

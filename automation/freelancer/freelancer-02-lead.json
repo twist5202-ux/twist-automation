@@ -1,5 +1,5 @@
 {
-  "name": "FREELANCER 02 — Lead Follow-Up (Calon Klien Diam → Dikejar)",
+  "name": "FREELANCER 02 — Lead Follow-Up (Prospective Klien Diam → Dikejar)",
   "nodes": [
     {
       "parameters": {
@@ -13,7 +13,7 @@
         }
       },
       "id": "n1",
-      "name": "Cek Tiap Pagi 10:00",
+      "name": "Check Every Morning at 10:00",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.1,
       "position": [
@@ -26,7 +26,7 @@
         "operation": "read",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -37,7 +37,7 @@
         "options": {}
       },
       "id": "n2",
-      "name": "Baca Daftar Lead",
+      "name": "Read Lead List",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
@@ -47,10 +47,10 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst rows = $input.all().map(r => r.json);\nconst now = Date.now();\nreturn rows.filter(r => {\n  if (r.status !== 'baru') return false;\n  const t = new Date(r.waktu_chat).getTime();\n  return (now - t) / 86400000 >= 3;\n}).map(r => ({ json: r }));\n"
+        "jsCode": "\nconst rows = $input.all().map(r => r.json);\nconst now = Date.now();\nreturn rows.filter(r => {\n  if (r.status !== 'new') return false;\n  const t = new Date(r.waktu_chat).getTime();\n  return (now - t) / 86400000 >= 3;\n}).map(r => ({ json: r }));\n"
       },
       "id": "n3",
-      "name": "Filter Diam > 3 Hari",
+      "name": "Filter Idle > 3 Days",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -67,7 +67,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -77,18 +77,18 @@
           "parameters": [
             {
               "name": "target",
-              "value": "GANTI_NOMOR_WA_ADMIN"
+              "value": "REPLACE_ADMIN_WHATSAPP_NUMBER"
             },
             {
               "name": "message",
-              "value": "Halo {{$json.nama}} 👋\\n\\nBeberapa hari lalu lo nanya soal *{{$json.layanan}}*.\\n\\nMasih tertarik? Kalau ada kendala (harga, waktu, scope), bilang aja — kita bisa cari jalan.\\n\\nGue siap bantu kapan aja."
+              "value": "Halo {{$json.name}} 👋\\n\\nA few days ago you asked about *{{$json.service}}*.\\n\\nStill interested? If you have any concerns (price, timeline, scope), just say so — we can find a way.\\n\\nI am happy to help any time."
             }
           ]
         },
         "options": {}
       },
       "id": "n4",
-      "name": "Follow-Up Lead",
+      "name": "Follow Up Lead",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -101,7 +101,7 @@
         "operation": "append",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -116,7 +116,7 @@
         "options": {}
       },
       "id": "n5",
-      "name": "Update Status Lead",
+      "name": "Update Lead Status",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
@@ -126,44 +126,44 @@
     }
   ],
   "connections": {
-    "Cek Tiap Pagi 10:00": {
+    "Check Every Morning at 10:00": {
       "main": [
         [
           {
-            "node": "Baca Daftar Lead",
+            "node": "Read Lead List",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Baca Daftar Lead": {
+    "Read Lead List": {
       "main": [
         [
           {
-            "node": "Filter Diam > 3 Hari",
+            "node": "Filter Idle > 3 Days",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Filter Diam > 3 Hari": {
+    "Filter Idle > 3 Days": {
       "main": [
         [
           {
-            "node": "Follow-Up Lead",
+            "node": "Follow Up Lead",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Follow-Up Lead": {
+    "Follow Up Lead": {
       "main": [
         [
           {
-            "node": "Update Status Lead",
+            "node": "Update Lead Status",
             "type": "main",
             "index": 0
           }

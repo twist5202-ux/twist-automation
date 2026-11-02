@@ -1,5 +1,5 @@
 {
-  "name": "UMKM 13 — Absensi Karyawan (Form → Sheets → Rekap Bulanan)",
+  "name": "UMKM 13 — Absensi Employee (Form → Sheets → Recap Monthly)",
   "nodes": [
     {
       "parameters": {
@@ -7,7 +7,7 @@
         "options": {}
       },
       "id": "n1",
-      "name": "Form Absensi Masuk",
+      "name": "Form Absensi Incoming",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
@@ -21,7 +21,7 @@
         "operation": "append",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -36,7 +36,7 @@
         "options": {}
       },
       "id": "n2",
-      "name": "Catat Kehadiran",
+      "name": "Log Attendance",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
@@ -46,10 +46,10 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst jam = new Date().getHours();\nconst menit = new Date().getMinutes();\nconst totalMenit = jam * 60 + menit;\nconst batas = 8 * 60 + 15;  // 08:15\nconst telat = totalMenit > batas;\nreturn [{ json: { telat, jam: String(jam).padStart(2,'0') + ':' + String(menit).padStart(2,'0') } }];\n"
+        "jsCode": "\nconst hour = new Date().getHours();\nconst minute = new Date().getMinutes();\nconst totalMinutes = hour * 60 + minute;\nconst limit = 8 * 60 + 15;  // 08:15\nconst late = totalMinutes > limit;\nreturn [{ json: { late, hour: String(hour).padStart(2,'0') + ':' + String(minute).padStart(2,'0') } }];\n"
       },
       "id": "n3",
-      "name": "Cek Telat?",
+      "name": "Late?",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -67,7 +67,7 @@
           "conditions": [
             {
               "id": "n4-c",
-              "leftValue": "={{$json.telat}}",
+              "leftValue": "={{$json.late}}",
               "rightValue": "true",
               "operator": {
                 "type": "number",
@@ -79,7 +79,7 @@
         }
       },
       "id": "n4",
-      "name": "Telat?",
+      "name": "Late?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
@@ -96,7 +96,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -106,18 +106,18 @@
           "parameters": [
             {
               "name": "target",
-              "value": "GANTI_NOMOR_WA_ADMIN"
+              "value": "REPLACE_ADMIN_WHATSAPP_NUMBER"
             },
             {
               "name": "message",
-              "value": "⚠️ Karyawan telat masuk hari ini.\\nJam: {{$json.jam}}\\nBatas: 08:15"
+              "value": "⚠️ Employee late incoming today.\\nJam: {{$json.hour}}\\nBatas: 08:15"
             }
           ]
         },
         "options": {}
       },
       "id": "n5",
-      "name": "Notif Admin Karyawan Telat",
+      "name": "Notify Admin of Late Employee",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -134,7 +134,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -144,18 +144,18 @@
           "parameters": [
             {
               "name": "target",
-              "value": "GANTI_NOMOR_WA_ADMIN"
+              "value": "REPLACE_ADMIN_WHATSAPP_NUMBER"
             },
             {
               "name": "message",
-              "value": "✅ Absensi tercatat.\\nJam masuk: {{$json.jam}}"
+              "value": "✅ Absensi logged.\\nJam incoming: {{$json.hour}}"
             }
           ]
         },
         "options": {}
       },
       "id": "n6",
-      "name": "Notif Admin Absen",
+      "name": "Notify Admin of Absence",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -165,49 +165,38 @@
     }
   ],
   "connections": {
-    "Form Absensi Masuk": {
+    "Form Absensi Incoming": {
       "main": [
         [
           {
-            "node": "Catat Kehadiran",
+            "node": "Log Attendance",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Catat Kehadiran": {
+    "Log Attendance": {
       "main": [
         [
           {
-            "node": "Cek Telat?",
+            "node": "Late?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Cek Telat?": {
+    "Late?": {
       "main": [
         [
           {
-            "node": "Telat?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Telat?": {
-      "main": [
-        [
-          {
-            "node": "Notif Admin Karyawan Telat",
+            "node": "Notify Admin of Late Employee",
             "type": "main",
             "index": 0
           },
           {
-            "node": "Notif Admin Absen",
+            "node": "Notify Admin of Absence",
             "type": "main",
             "index": 0
           }

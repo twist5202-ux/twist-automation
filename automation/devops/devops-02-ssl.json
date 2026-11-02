@@ -13,7 +13,7 @@
         }
       },
       "id": "n1",
-      "name": "Cek Tiap Hari 07:00",
+      "name": "Check Every Day at 07:00",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.1,
       "position": [
@@ -23,11 +23,11 @@
     },
     {
       "parameters": {
-        "url": "https://GANTI_DOMAIN_LO.com",
+        "url": "https://REPLACE_DOMAIN_LO.com",
         "options": {}
       },
       "id": "n2",
-      "name": "Cek Sertifikat SSL",
+      "name": "Check SSL Certificate",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -37,10 +37,10 @@
     },
     {
       "parameters": {
-        "jsCode": "\n// n8n HTTP node mengembalikan header TLS pada metadata\nconst meta = $input.first().json;\n// fallback: hitung manual dari tanggal yang di-set\nconst expiry = new Date('GANTI_TANGGAL_EXPIRY');   // ganti dengan tanggal asli\nconst now = new Date();\nconst sisa = Math.ceil((expiry - now) / 86400000);\n\nlet out = 'SSL CERTIFICATE\\n================\\n';\nout += 'Domain  : GANTI_DOMAIN_LO.com\\n';\nout += 'Expiry  : ' + expiry.toLocaleDateString('id') + '\\n';\nout += 'Sisa    : ' + sisa + ' hari\\n\\n';\nif (sisa <= 7) out += '🔴 SANGAT DARURAT — perbarui SEKARANG';\nelse if (sisa <= 14) out += '🟠 Segera perbarui (kurang dari 2 minggu)';\nelse if (sisa <= 30) out += '🟡 Rencanakan perpanjangan';\nelse out += '🟢 Masih aman';\nreturn [{ json: { laporan: out, sisa } }];\n"
+        "jsCode": "\n// The n8n HTTP node returns TLS metadata\nconst meta = $input.first().json;\n// Fallback: calculate manually from a fixed date\nconst expiry = new Date('REPLACE_EXPIRY_DATE');   // set the real date here\nconst now = new Date();\nconst daysLeft = Math.ceil((expiry - now) / 86400000);\n\nlet out = 'SSL CERTIFICATE\\n================\\n';\nout += 'Domain  : REPLACE_DOMAIN_LO.com\\n';\nout += 'Expiry  : ' + expiry.toLocaleDateString('id') + '\\n';\nout += 'Sisa    : ' + sisa + ' hari\\n\\n';\nif (daysLeft <= 7) out += '🔴 CRITICAL — renew NOW';\nelse if (sisa <= 14) out += '🟠 Immediately perbarui (kurang from 2 Sunday)';\nelse if (daysLeft <= 30) out += '🟡 Plan the renewal';\nelse out += '🟢 Still safe';\nreturn [{ json: { report: out, days_left: daysLeft } }];\n"
       },
       "id": "n3",
-      "name": "Hitung Sisa Hari",
+      "name": "Calculate Days Remaining",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -70,7 +70,7 @@
         }
       },
       "id": "n4",
-      "name": "Sisa <= 14 Hari?",
+      "name": "Days Left <= 14?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
@@ -87,7 +87,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -97,18 +97,18 @@
           "parameters": [
             {
               "name": "target",
-              "value": "GANTI_NOMOR_WA_ADMIN"
+              "value": "REPLACE_ADMIN_WHATSAPP_NUMBER"
             },
             {
               "name": "message",
-              "value": "={{$json.laporan}}"
+              "value": "={{$json.report}}"
             }
           ]
         },
         "options": {}
       },
       "id": "n5",
-      "name": "Alert SSL Akan Expired",
+      "name": "Alert SSL Expiring Soon",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -118,44 +118,44 @@
     }
   ],
   "connections": {
-    "Cek Tiap Hari 07:00": {
+    "Check Every Day at 07:00": {
       "main": [
         [
           {
-            "node": "Cek Sertifikat SSL",
+            "node": "Check SSL Certificate",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Cek Sertifikat SSL": {
+    "Check SSL Certificate": {
       "main": [
         [
           {
-            "node": "Hitung Sisa Hari",
+            "node": "Calculate Days Remaining",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Hitung Sisa Hari": {
+    "Calculate Days Remaining": {
       "main": [
         [
           {
-            "node": "Sisa <= 14 Hari?",
+            "node": "Days Left <= 14?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Sisa <= 14 Hari?": {
+    "Days Left <= 14?": {
       "main": [
         [
           {
-            "node": "Alert SSL Akan Expired",
+            "node": "Alert SSL Expiring Soon",
             "type": "main",
             "index": 0
           }

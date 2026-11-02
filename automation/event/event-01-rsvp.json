@@ -8,7 +8,7 @@
         "options": {}
       },
       "id": "n1",
-      "name": "RSVP Masuk",
+      "name": "RSVP Incoming",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
@@ -19,10 +19,10 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst b = $input.first().json.body || $input.first().json;\nreturn [{ json: {\n  nama: b.nama || 'Tamu',\n  wa: String(b.wa || b.phone || '').replace(/[^0-9]/g, ''),\n  event: b.nama_event || 'Acara',\n  tanggal: b.tanggal || '-',\n  jam: b.jam || '-',\n  lokasi: b.lokasi || '-',\n  jumlah: Number(b.jumlah_orang || 1),\n  konfirmasi: (b.hadir || 'ya').toLowerCase() === 'ya' ? 'hadir' : 'tidak hadir',\n  waktu: new Date().toLocaleString('id-ID')\n}}];\n"
+        "jsCode": "\nconst b = $input.first().json.body || $input.first().json;\nreturn [{ json: {\n  name: b.name || 'Guest',\n  WhatsApp: String(b.WhatsApp || b.phone || '').replace(/[^0-9]/g, ''),\n  event: b.nama_event || 'Event',\n  date: b.date || '-',\n  hour: b.hour || '-',\n  location: b.location || '-',\n  amount: Number(b.jumlah_orang || 1),\n  confirm: (b.hadir || 'yes').toLowerCase() === 'yes' ? 'attending' : 'not attending',\n  time: new Date().toLocaleString('en-US')\n}}];\n"
       },
       "id": "n2",
-      "name": "Normalize Tamu",
+      "name": "Normalize Guest",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -36,7 +36,7 @@
         "operation": "append",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -51,7 +51,7 @@
         "options": {}
       },
       "id": "n3",
-      "name": "Catat RSVP",
+      "name": "Log RSVP",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
@@ -70,7 +70,7 @@
           "conditions": [
             {
               "id": "n4-c",
-              "leftValue": "={{ $json.konfirmasi }}",
+              "leftValue": "={{ $json.confirm }}",
               "rightValue": "hadir",
               "operator": {
                 "type": "string",
@@ -82,7 +82,7 @@
         }
       },
       "id": "n4",
-      "name": "Hadir?",
+      "name": "Attending?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
@@ -99,7 +99,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -113,14 +113,14 @@
             },
             {
               "name": "message",
-              "value": "Terima kasih atas konfirmasinya, {{$json.nama}} 🙏\\n\\nKami tunggu kehadiran lo di:\\n{{$json.event}}\\n📅 {{$json.tanggal}} · {{$json.jam}}\\n📍 {{$json.lokasi}}\\n\\nJumlah: {{$json.jumlah}} orang"
+              "value": "Thank you for confirming, {{$json.name}} 🙏\\n\\nWe look forward to seeing you at:\\n{{$json.event}}\\n📅 {{$json.date}} · {{$json.hour}}\\n📍 {{$json.location}}\\n\\nJumlah: {{$json.amount}} orang"
             }
           ]
         },
         "options": {}
       },
       "id": "n5",
-      "name": "Terima Kasih (Hadir)",
+      "name": "Thank You (Attending)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -137,7 +137,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -151,14 +151,14 @@
             },
             {
               "name": "message",
-              "value": "Terima kasih sudah kabari, {{$json.nama}}.\\n\\nKami hormati keputusan lo. Doa restu lo sudah sangat berarti buat kami.\\n\\nSampai jumpa di kesempatan lain 💛"
+              "value": "Thank you for letting us know, {{$json.name}}.\\n\\nWe respect your decision. Your good wishes mean a lot to us.\\n\\nSee you at another occasion 💛"
             }
           ]
         },
         "options": {}
       },
       "id": "n6",
-      "name": "Konfirmasi Tidak Hadir",
+      "name": "Confirm Not Attending",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -175,7 +175,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -185,18 +185,18 @@
           "parameters": [
             {
               "name": "target",
-              "value": "GANTI_NOMOR_WA_ADMIN"
+              "value": "REPLACE_ADMIN_WHATSAPP_NUMBER"
             },
             {
               "name": "message",
-              "value": "RSVP BARU\\n========\\nNama    : {{$('Normalize Tamu').first().json.nama}}\\nEvent   : {{$('Normalize Tamu').first().json.event}}\\nStatus  : {{$('Normalize Tamu').first().json.konfirmasi}}\\nJumlah  : {{$('Normalize Tamu').first().json.jumlah}} orang\\n\\nTotal tamu tercatat di Sheets."
+              "value": "NEW RSVP\\n========\\nNama    : {{$('Normalize Guest').first().json.name}}\\nEvent   : {{$('Normalize Guest').first().json.event}}\\nStatus  : {{$('Normalize Guest').first().json.confirm}}\\nGuests : {{$('Normalize Guest').first().json.amount}} people\\n\\nTotal guests logged to Sheets."
             }
           ]
         },
         "options": {}
       },
       "id": "n7",
-      "name": "Notif EO",
+      "name": "Notify Event Organizer",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -206,71 +206,71 @@
     }
   ],
   "connections": {
-    "RSVP Masuk": {
+    "RSVP Incoming": {
       "main": [
         [
           {
-            "node": "Normalize Tamu",
+            "node": "Normalize Guest",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Normalize Tamu": {
+    "Normalize Guest": {
       "main": [
         [
           {
-            "node": "Catat RSVP",
+            "node": "Log RSVP",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Catat RSVP": {
+    "Log RSVP": {
       "main": [
         [
           {
-            "node": "Hadir?",
+            "node": "Attending?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Hadir?": {
+    "Attending?": {
       "main": [
         [
           {
-            "node": "Terima Kasih (Hadir)",
+            "node": "Thank You (Attending)",
             "type": "main",
             "index": 0
           },
           {
-            "node": "Konfirmasi Tidak Hadir",
+            "node": "Confirm Not Attending",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Terima Kasih (Hadir)": {
+    "Thank You (Attending)": {
       "main": [
         [
           {
-            "node": "Notif EO",
+            "node": "Notify Event Organizer",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Konfirmasi Tidak Hadir": {
+    "Confirm Not Attending": {
       "main": [
         [
           {
-            "node": "Notif EO",
+            "node": "Notify Event Organizer",
             "type": "main",
             "index": 0
           }

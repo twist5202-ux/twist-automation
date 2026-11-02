@@ -13,7 +13,7 @@
         }
       },
       "id": "n1",
-      "name": "Cek Tiap 4 Jam",
+      "name": "Check Every 4 Hours",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.1,
       "position": [
@@ -27,7 +27,7 @@
         "options": {}
       },
       "id": "n2",
-      "name": "Ambil Funding Rate",
+      "name": "Fetch Funding Rate",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -37,10 +37,10 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst d = $input.first().json;\nconst rate = parseFloat(d.lastFundingRate) * 100;  // persen\nconst annual = rate * 3 * 365;                       // 3x sehari\nconst arah = rate > 0 ? 'Long bayar Short' : 'Short bayar Long';\n\nlet out = 'FUNDING RATE BTC\\n================\\n';\nout += 'Rate sekarang : ' + rate.toFixed(4) + '%\\n';\nout += 'Arah          : ' + arah + '\\n';\nout += 'Annualized    : ' + annual.toFixed(2) + '%\\n\\n';\n\nif (Math.abs(annual) > 20) {\n  out += '🔥 PELUANG BESAR — annualized di atas 20%';\n} else if (Math.abs(annual) > 10) {\n  out += '👀 Lumayan — pantau terus';\n} else {\n  out += '😴 Normal — gak ada peluang khusus';\n}\nreturn [{ json: { laporan: out, annual } }];\n"
+        "jsCode": "\nconst d = $input.first().json;\nconst rate = parseFloat(d.lastFundingRate) * 100;  // percent\nconst annual = rate * 3 * 365;                       // 3x per day\nconst direction = rate > 0 ? 'Longs pay Shorts' : 'Shorts pay Longs';\n\nlet out = 'FUNDING RATE BTC\\n================\\n';\nout += 'Current rate : ' + rate.toFixed(4) + '%\\n';\nout += 'Direction    : ' + direction + '\\n';\nout += 'Annualized   : ' + annual.toFixed(2) + '%\\n\\n';\n\nif (Math.abs(annual) > 20) {\n  out += '🔥 BIG OPPORTUNITY — annualized above 20%';\n} else if (Math.abs(annual) > 10) {\n  out += '👀 Decent — keep watching';\n} else {\n  out += '😴 Normal — no special opportunity';\n}\nreturn [{ json: { report: out, annual } }];\n"
       },
       "id": "n3",
-      "name": "Analisa Funding",
+      "name": "Analyze Funding",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -87,7 +87,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -97,18 +97,18 @@
           "parameters": [
             {
               "name": "target",
-              "value": "GANTI_NOMOR_WA_ADMIN"
+              "value": "REPLACE_ADMIN_WHATSAPP_NUMBER"
             },
             {
               "name": "message",
-              "value": "={{$json.laporan}}"
+              "value": "={{$json.report}}"
             }
           ]
         },
         "options": {}
       },
       "id": "n5",
-      "name": "Alert Peluang Funding",
+      "name": "Alert Funding Opportunity",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -118,29 +118,29 @@
     }
   ],
   "connections": {
-    "Cek Tiap 4 Jam": {
+    "Check Every 4 Hours": {
       "main": [
         [
           {
-            "node": "Ambil Funding Rate",
+            "node": "Fetch Funding Rate",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Ambil Funding Rate": {
+    "Fetch Funding Rate": {
       "main": [
         [
           {
-            "node": "Analisa Funding",
+            "node": "Analyze Funding",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Analisa Funding": {
+    "Analyze Funding": {
       "main": [
         [
           {
@@ -155,7 +155,7 @@
       "main": [
         [
           {
-            "node": "Alert Peluang Funding",
+            "node": "Alert Funding Opportunity",
             "type": "main",
             "index": 0
           }

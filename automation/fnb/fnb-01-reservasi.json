@@ -1,42 +1,42 @@
 {
-  "name": "FNB 01 — Reservasi Meja (Auto Konfirmasi + Reminder)",
+  "name": "FNB 01 — Reservation Meja (Auto Confirm + Reminder)",
   "nodes": [
     {
       "parameters": {
-        "path": "fnb-reservasi",
+        "path": "fnb-reservation",
         "httpMethod": "POST",
         "options": {}
       },
       "id": "n1",
-      "name": "Form Reservasi",
+      "name": "Reservation Form",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
         -300,
         300
       ],
-      "webhookId": "fnb-reservasi"
+      "webhookId": "fnb-reservation"
     },
     {
       "parameters": {
-        "jsCode": "\nconst b = $input.first().json.body || $input.first().json;\nreturn [{ json: {\n  nama: b.nama || 'Pelanggan',\n  wa: String(b.wa || b.phone || '').replace(/[^0-9]/g, ''),\n  jumlah: Number(b.jumlah_orang || b.pax || 2),\n  tanggal: b.tanggal || '-',\n  jam: b.jam || '-',\n  catatan: b.catatan || '-',\n  waktu_daftar: new Date().toLocaleString('id-ID')\n}}];\n"
+        "jsCode": "\nconst b = $input.first().json.body || $input.first().json;\nreturn [{ json: {\n  name: b.name || 'Customer',\n  WhatsApp: String(b.WhatsApp || b.phone || '').replace(/[^0-9]/g, ''),\n  amount: Number(b.jumlah_orang || b.pax || 2),\n  date: b.date || '-',\n  hour: b.hour || '-',\n  note: b.note || '-',\n  waktu_daftar: new Date().toLocaleString('id-ID')\n}}];\n"
       },
       "id": "n2",
-      "name": "Normalize Reservasi",
+      "name": "Normalize Reservation",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         -60,
         300
       ],
-      "notes": "Samakan format form reservasi."
+      "notes": "Samakan format form reservation."
     },
     {
       "parameters": {
         "operation": "append",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -51,7 +51,7 @@
         "options": {}
       },
       "id": "n3",
-      "name": "Catat Reservasi",
+      "name": "Log Reservation",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
@@ -68,7 +68,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -82,14 +82,14 @@
             },
             {
               "name": "message",
-              "value": "RESERVASI DITERIMA ✅\\n====================\\nNama    : {{$json.nama}}\\nJumlah  : {{$json.jumlah}} orang\\nTanggal: {{$json.tanggal}}\\nJam     : {{$json.jam}}\\nCatatan : {{$json.catatan}}\\n\\nKami tunggu kedatangannya. Kalau ada perubahan, balas chat ini ya."
+              "value": "RESERVATION RECEIVED ✅\\n====================\\nNama    : {{$json.name}}\\nGuests  : {{$json.amount}} people\\nDate    : {{$json.date}}\\nTime    : {{$json.hour}}\\nNotes   : {{$json.note}}\\n\\nWe look forward to your visit. If anything changes, just reply to this chat."
             }
           ]
         },
         "options": {}
       },
       "id": "n4",
-      "name": "Konfirmasi Reservasi",
+      "name": "Confirm Reservation",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -106,7 +106,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -116,18 +116,18 @@
           "parameters": [
             {
               "name": "target",
-              "value": "GANTI_NOMOR_WA_ADMIN"
+              "value": "REPLACE_ADMIN_WHATSAPP_NUMBER"
             },
             {
               "name": "message",
-              "value": "RESERVASI BARU\\n=============\\nNama    : {{$('Normalize Reservasi').first().json.nama}}\\nJumlah  : {{$('Normalize Reservasi').first().json.jumlah}} orang\\nTanggal: {{$('Normalize Reservasi').first().json.tanggal}}\\nJam     : {{$('Normalize Reservasi').first().json.jam}}\\nCatatan : {{$('Normalize Reservasi').first().json.catatan}}\\n\\nSiapkan meja."
+              "value": "NEW RESERVATION\\n=============\\nNama    : {{$('Normalize Reservation').first().json.name}}\\nJumlah  : {{$('Normalize Reservation').first().json.amount}} orang\\nTanggal: {{$('Normalize Reservation').first().json.date}}\\nJam     : {{$('Normalize Reservation').first().json.hour}}\\nCatatan : {{$('Normalize Reservation').first().json.note}}\\n\\nPrepare a table."
             }
           ]
         },
         "options": {}
       },
       "id": "n5",
-      "name": "Notif Resto",
+      "name": "Notify Restaurant",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -147,7 +147,7 @@
         }
       },
       "id": "n6",
-      "name": "Reminder H-1 Jam 10:00",
+      "name": "Reminder D-1 at 10:00",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
       "position": [
@@ -160,7 +160,7 @@
         "operation": "read",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -171,7 +171,7 @@
         "options": {}
       },
       "id": "n7",
-      "name": "Baca Reservasi Besok",
+      "name": "Read Tomorrow's Reservations",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
@@ -181,17 +181,17 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst rows = $input.all().map(r => r.json);\nconst besok = new Date(Date.now() + 86400000).toISOString().slice(0, 10);\nreturn rows.filter(r => String(r.tanggal || '').slice(0, 10) === besok)\n  .map(r => ({ json: r }));\n"
+        "jsCode": "\nconst rows = $input.all().map(r => r.json);\nconst tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10);\nreturn rows.filter(r => String(r.date || '').slice(0, 10) === tomorrow)\n  .map(r => ({ json: r }));\n"
       },
       "id": "n8",
-      "name": "Filter Reservasi Besok",
+      "name": "Filter Tomorrow's Reservations",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         660,
         500
       ],
-      "notes": "Ambil reservasi yang tanggalnya besok."
+      "notes": "Fetch reservation that tanggalnya tomorrow."
     },
     {
       "parameters": {
@@ -202,7 +202,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -216,14 +216,14 @@
             },
             {
               "name": "message",
-              "value": "PENGINGAT RESERVASI BESOK ⏰\\n==========================\\nNama    : {{$json.nama}}\\nJumlah  : {{$json.jumlah}} orang\\nJam     : {{$json.jam}}\\n\\nKami tunggu besok ya. Kalau berubah rencana, mohon kabari."
+              "value": "RESERVATION REMINDER — TOMORROW ⏰\\n==========================\\nNama    : {{$json.name}}\\nGuests  : {{$json.amount}} people\\nTime    : {{$json.hour}}\\n\\nWe will see you tomorrow. If your plans change, please let us know."
             }
           ]
         },
         "options": {}
       },
       "id": "n9",
-      "name": "Reminder ke Pelanggan",
+      "name": "Reminder to Customer",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -233,77 +233,77 @@
     }
   ],
   "connections": {
-    "Form Reservasi": {
+    "Reservation Form": {
       "main": [
         [
           {
-            "node": "Normalize Reservasi",
+            "node": "Normalize Reservation",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Normalize Reservasi": {
+    "Normalize Reservation": {
       "main": [
         [
           {
-            "node": "Catat Reservasi",
+            "node": "Log Reservation",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Catat Reservasi": {
+    "Log Reservation": {
       "main": [
         [
           {
-            "node": "Konfirmasi Reservasi",
+            "node": "Confirm Reservation",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Konfirmasi Reservasi": {
+    "Confirm Reservation": {
       "main": [
         [
           {
-            "node": "Notif Resto",
+            "node": "Notify Restaurant",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Reminder H-1 Jam 10:00": {
+    "Reminder D-1 at 10:00": {
       "main": [
         [
           {
-            "node": "Baca Reservasi Besok",
+            "node": "Read Tomorrow's Reservations",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Baca Reservasi Besok": {
+    "Read Tomorrow's Reservations": {
       "main": [
         [
           {
-            "node": "Filter Reservasi Besok",
+            "node": "Filter Tomorrow's Reservations",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Filter Reservasi Besok": {
+    "Filter Tomorrow's Reservations": {
       "main": [
         [
           {
-            "node": "Reminder ke Pelanggan",
+            "node": "Reminder to Customer",
             "type": "main",
             "index": 0
           }

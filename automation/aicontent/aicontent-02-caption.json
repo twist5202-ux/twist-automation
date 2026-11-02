@@ -13,7 +13,7 @@
         }
       },
       "id": "n1",
-      "name": "Tiap Pagi 08:00",
+      "name": "Every Morning 08:00",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
       "position": [
@@ -26,7 +26,7 @@
         "operation": "read",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -37,7 +37,7 @@
         "options": {}
       },
       "id": "n2",
-      "name": "Baca Ide Konten",
+      "name": "Read Content Ideas",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
@@ -47,17 +47,17 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst rows = $input.all().map(r => r.json);\nconst belum = rows.filter(r => (r.status || 'baru') === 'baru');\nif (belum.length === 0) return [{ json: { skip: true } }];\nconst pilih = belum[Math.floor(Math.random() * belum.length)];\nreturn [{ json: { skip: false, ...pilih } }];\n"
+        "jsCode": "\nconst rows = $input.all().map(r => r.json);\nconst unused = rows.filter(r => (r.status || 'new') === 'new');\nif (unused.length === 0) return [{ json: { skip: true } }];\nconst pick = unused[Math.floor(Math.random() * unused.length)];\nreturn [{ json: { skip: false, ...pick } }];\n"
       },
       "id": "n3",
-      "name": "Pilih Ide Belum Dipakai",
+      "name": "Pick Unused Idea",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         180,
         300
       ],
-      "notes": "Pilih 1 ide acak yang belum dipakai."
+      "notes": "Pilih 1 ide acak that not yet dipakai."
     },
     {
       "parameters": {
@@ -82,7 +82,7 @@
         }
       },
       "id": "n4",
-      "name": "Ada Ide?",
+      "name": "Any Ideas?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
@@ -93,13 +93,13 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "GANTI_BASE_URL_AI/chat/completions",
+        "url": "REPLACE_AI_BASE_URL/chat/completions",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             {
               "name": "Authorization",
-              "value": "Bearer GANTI_API_KEY_AI"
+              "value": "Bearer REPLACE_AI_API_KEY"
             },
             {
               "name": "Content-Type",
@@ -110,7 +110,7 @@
         "sendBody": true,
         "contentType": "json",
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ model: 'GANTI_MODEL_AI', messages: [{ role: 'system', content: Kamu social media manager. Buat caption Instagram/TikTok bahasa Indonesia. Format: hook kuat di baris pertama, isi 2-3 kalimat, pertanyaan buat engagement, lalu 5-8 hashtag yang relevan. Tone: santai, manusiawi, bukan korporat. Maksimal 100 kata. }], temperature: 0.7, max_tokens: 500 }) }}",
+        "jsonBody": "={{ JSON.stringify({ model: 'REPLACE_MODEL_AI', messages: [{ role: 'system', content: You are a social media manager. Write an Instagram or TikTok caption in Indonesian. Format: a strong hook on the first line, 2-3 sentences of body, a question that drives engagement, then 5-8 relevant hashtags. Tone: casual, human, not corporate. Max 100 words. }], temperature: 0.7, max_tokens: 500 }) }}",
         "options": {
           "timeout": 45000
         }
@@ -126,17 +126,17 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst r = $input.first().json;\nconst teks = r.choices?.[0]?.message?.content || r.message?.content || '';\nreturn [{ json: { caption: teks.trim() } }];\n"
+        "jsCode": "\nconst r = $input.first().json;\nconst text = r.choices?.[0]?.message?.content || r.message?.content || '';\nreturn [{ json: { caption: text.trim() } }];\n"
       },
       "id": "n6",
-      "name": "Ambil Caption",
+      "name": "Fetch Caption",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         900,
         300
       ],
-      "notes": "Ekstrak caption dari respons AI."
+      "notes": "Ekstrak caption from respons AI."
     },
     {
       "parameters": {
@@ -147,7 +147,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -157,18 +157,18 @@
           "parameters": [
             {
               "name": "target",
-              "value": "GANTI_NOMOR_WA_ADMIN"
+              "value": "REPLACE_ADMIN_WHATSAPP_NUMBER"
             },
             {
               "name": "message",
-              "value": "CAPTION HARI INI 📱\\n==================\\n\\n{{$('Ambil Caption').first().json.caption}}\\n\\nCopy-paste, tempel, posting."
+              "value": "CAPTION TODAY 📱\\n==================\\n\\n{{$('Fetch Caption').first().json.caption}}\\n\\nCopy-paste, tempel, posting."
             }
           ]
         },
         "options": {}
       },
       "id": "n7",
-      "name": "Kirim Caption ke Admin",
+      "name": "Send Caption to Admin",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -181,7 +181,7 @@
         "operation": "update",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -200,7 +200,7 @@
         "options": {}
       },
       "id": "n8",
-      "name": "Tandai Ide Terpakai",
+      "name": "Mark Idea as Used",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
@@ -210,40 +210,40 @@
     }
   ],
   "connections": {
-    "Tiap Pagi 08:00": {
+    "Every Morning 08:00": {
       "main": [
         [
           {
-            "node": "Baca Ide Konten",
+            "node": "Read Content Ideas",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Baca Ide Konten": {
+    "Read Content Ideas": {
       "main": [
         [
           {
-            "node": "Pilih Ide Belum Dipakai",
+            "node": "Pick Unused Idea",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Pilih Ide Belum Dipakai": {
+    "Pick Unused Idea": {
       "main": [
         [
           {
-            "node": "Ada Ide?",
+            "node": "Any Ideas?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Ada Ide?": {
+    "Any Ideas?": {
       "main": [
         [
           {
@@ -258,29 +258,29 @@
       "main": [
         [
           {
-            "node": "Ambil Caption",
+            "node": "Fetch Caption",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Ambil Caption": {
+    "Fetch Caption": {
       "main": [
         [
           {
-            "node": "Kirim Caption ke Admin",
+            "node": "Send Caption to Admin",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Kirim Caption ke Admin": {
+    "Send Caption to Admin": {
       "main": [
         [
           {
-            "node": "Tandai Ide Terpakai",
+            "node": "Mark Idea as Used",
             "type": "main",
             "index": 0
           }

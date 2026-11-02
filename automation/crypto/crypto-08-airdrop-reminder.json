@@ -1,5 +1,5 @@
 {
-  "name": "CRYPTO 08 — Airdrop Deadline Reminder (Jangan Sampai Kelewat)",
+  "name": "CRYPTO 08 — Airdrop Deadline Reminder (Do not Sampai Kelewat)",
   "nodes": [
     {
       "parameters": {
@@ -13,7 +13,7 @@
         }
       },
       "id": "n1",
-      "name": "Cek Tiap Pagi 07:00",
+      "name": "Check Every Morning at 07:00",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.1,
       "position": [
@@ -26,7 +26,7 @@
         "operation": "read",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -37,7 +37,7 @@
         "options": {}
       },
       "id": "n2",
-      "name": "Baca Daftar Airdrop",
+      "name": "Read List Airdrop",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
@@ -50,7 +50,7 @@
         "jsCode": "\nconst rows = $input.all().map(r => r.json);\nconst now = new Date();\nconst urgent = [];\nfor (const r of rows) {\n  if (r.status === 'done') continue;\n  const deadline = new Date(r.deadline);\n  const sisaHari = Math.ceil((deadline - now) / 86400000);\n  if (sisaHari <= 3 && sisaHari >= 0) {\n    urgent.push({ ...r, sisaHari });\n  }\n}\nreturn urgent.map(r => ({ json: r }));\n"
       },
       "id": "n3",
-      "name": "Hitung Sisa Hari",
+      "name": "Calculate Days Remaining",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -67,7 +67,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -77,18 +77,18 @@
           "parameters": [
             {
               "name": "target",
-              "value": "GANTI_NOMOR_WA_ADMIN"
+              "value": "REPLACE_ADMIN_WHATSAPP_NUMBER"
             },
             {
               "name": "message",
-              "value": "⏰ AIRDROP DEADLINE DEKAT\\n\\nNama     : {{$json.nama}}\nSisa     : {{$json.sisaHari}} hari\\nDeadline : {{$json.deadline}}\\nTask     : {{$json.task}}\\nLink     : {{$json.link}}\\n\\nJangan sampe kelewat!"
+              "value": "⏰ AIRDROP DEADLINE APPROACHING\\n\\nName     : {{$json.name}}\nDays left: {{$json.sisaHari}} days\\nDeadline : {{$json.deadline}}\\nTask     : {{$json.task}}\\nLink     : {{$json.link}}\\n\\nDo not miss it!"
             }
           ]
         },
         "options": {}
       },
       "id": "n4",
-      "name": "Alert Deadline Dekat",
+      "name": "Alert Deadline Approaching",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -98,33 +98,33 @@
     }
   ],
   "connections": {
-    "Cek Tiap Pagi 07:00": {
+    "Check Every Morning at 07:00": {
       "main": [
         [
           {
-            "node": "Baca Daftar Airdrop",
+            "node": "Read List Airdrop",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Baca Daftar Airdrop": {
+    "Read List Airdrop": {
       "main": [
         [
           {
-            "node": "Hitung Sisa Hari",
+            "node": "Calculate Days Remaining",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Hitung Sisa Hari": {
+    "Calculate Days Remaining": {
       "main": [
         [
           {
-            "node": "Alert Deadline Dekat",
+            "node": "Alert Deadline Approaching",
             "type": "main",
             "index": 0
           }

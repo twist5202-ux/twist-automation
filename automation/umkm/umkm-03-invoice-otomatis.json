@@ -4,12 +4,12 @@
     {
       "parameters": {
         "httpMethod": "POST",
-        "path": "invoice-baru",
+        "path": "invoice-new",
         "responseMode": "responseNode",
         "options": {}
       },
       "id": "webhook",
-      "name": "Pembayaran Diterima",
+      "name": "Payment Received",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
@@ -36,26 +36,26 @@
             },
             {
               "id": "i3",
-              "name": "nama_toko",
-              "value": "[NAMA TOKO ANDA]",
+              "name": "store_name",
+              "value": "[YOUR STORE NAME]",
               "type": "string"
             },
             {
               "id": "i4",
-              "name": "alamat_toko",
-              "value": "[ALAMAT TOKO ANDA]",
+              "name": "store_address",
+              "value": "[YOUR STORE ADDRESS]",
               "type": "string"
             },
             {
               "id": "i5",
-              "name": "nama_pembeli",
-              "value": "={{ $json.body.nama || $json.nama || 'Pelanggan' }}",
+              "name": "buyer_name",
+              "value": "={{ $json.body.name || $json.name || 'Customer' }}",
               "type": "string"
             },
             {
               "id": "i6",
               "name": "items",
-              "value": "={{ JSON.stringify($json.body.items || $json.items || [{nama: 'Produk', qty: 1, harga: $json.body.total || 0}]) }}",
+              "value": "={{ JSON.stringify($json.body.items || $json.items || [{name: 'Product', qty: 1, price: $json.body.total || 0}]) }}",
               "type": "string"
             },
             {
@@ -67,7 +67,7 @@
             {
               "id": "i8",
               "name": "ongkir",
-              "value": "={{ $json.body.ongkir || $json.ongkir || 0 }}",
+              "value": "={{ $json.body.shipping || $json.shipping || 0 }}",
               "type": "number"
             },
             {
@@ -78,7 +78,7 @@
             },
             {
               "id": "i10",
-              "name": "metode_bayar",
+              "name": "payment_method",
               "value": "={{ $json.body.metode || $json.metode || 'Transfer Bank' }}",
               "type": "string"
             }
@@ -87,7 +87,7 @@
         "options": {}
       },
       "id": "norm",
-      "name": "Siapkan Data Invoice",
+      "name": "Prepare Invoice Data",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
@@ -98,11 +98,11 @@
     {
       "parameters": {
         "operation": "html",
-        "html": "=<html><head><meta charset=\"utf-8\"><style>\n  body { font-family: Arial, sans-serif; margin: 0; padding: 40px; color: #222; }\n  .header { border-bottom: 3px solid #2563eb; padding-bottom: 16px; margin-bottom: 24px; }\n  .toko { font-size: 22px; font-weight: bold; color: #1e40af; }\n  .meta { font-size: 12px; color: #555; margin-top: 4px; }\n  .inv-title { font-size: 28px; font-weight: bold; color: #111; margin: 20px 0 4px; }\n  .inv-no { color: #2563eb; font-size: 14px; margin-bottom: 20px; }\n  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13px; }\n  th { background: #2563eb; color: #fff; padding: 10px; text-align: left; }\n  td { padding: 9px 10px; border-bottom: 1px solid #e5e7eb; }\n  .num { text-align: right; }\n  .totals { margin-top: 16px; text-align: right; font-size: 14px; }\n  .totals .grand { font-size: 20px; font-weight: bold; color: #1e40af; border-top: 2px solid #2563eb; padding-top: 8px; margin-top: 8px; }\n  .footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #ddd; font-size: 11px; color: #666; text-align: center; }\n</style></head><body>\n  <div class=\"header\">\n    <div class=\"toko\">{{ $json.nama_toko }}</div>\n    <div class=\"meta\">{{ $json.alamat_toko }}</div>\n  </div>\n  <div class=\"inv-title\">INVOICE</div>\n  <div class=\"inv-no\">{{ $json.invoice_no }}</div>\n  <div style=\"font-size:13px; margin-bottom:16px;\">\n    <b>Kepada:</b> {{ $json.nama_pembeli }}<br>\n    <b>Tanggal:</b> {{ $json.tanggal }}<br>\n    <b>Metode Pembayaran:</b> {{ $json.metode_bayar }}\n  </div>\n  <table>\n    <tr><th>Item</th><th class=\"num\">Qty</th><th class=\"num\">Harga</th><th class=\"num\">Jumlah</th></tr>\n    {{ JSON.parse($json.items).map(i => `<tr><td>${i.nama}</td><td class=\"num\">${i.qty}</td><td class=\"num\">Rp ${Number(i.harga).toLocaleString('id-ID')}</td><td class=\"num\">Rp ${(i.qty*i.harga).toLocaleString('id-ID')}</td></tr>`).join('') }}\n  </table>\n  <div class=\"totals\">\n    Subtotal: Rp {{ Number($json.subtotal).toLocaleString('id-ID') }}<br>\n    Ongkos Kirim: Rp {{ Number($json.ongkir).toLocaleString('id-ID') }}<br>\n    <div class=\"grand\">TOTAL: Rp {{ Number($json.total).toLocaleString('id-ID') }}</div>\n  </div>\n  <div class=\"footer\">Terima kasih telah berbelanja di {{ $json.nama_toko }}.<br>Invoice ini dibuat otomatis oleh sistem.</div>\n</body></html>",
+        "html": "=<html><head><meta charset=\"utf-8\"><style>\n  body { font-family: Arial, sans-serif; margin: 0; padding: 40px; color: #222; }\n  .header { border-bottom: 3px solid #2563eb; padding-bottom: 16px; margin-bottom: 24px; }\n  .store { font-size: 22px; font-weight: bold; color: #1e40af; }\n  .meta { font-size: 12px; color: #555; margin-top: 4px; }\n  .inv-title { font-size: 28px; font-weight: bold; color: #111; margin: 20px 0 4px; }\n  .inv-no { color: #2563eb; font-size: 14px; margin-bottom: 20px; }\n  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13px; }\n  th { background: #2563eb; color: #fff; padding: 10px; text-align: left; }\n  td { padding: 9px 10px; border-bottom: 1px solid #e5e7eb; }\n  .num { text-align: right; }\n  .totals { margin-top: 16px; text-align: right; font-size: 14px; }\n  .totals .grand { font-size: 20px; font-weight: bold; color: #1e40af; border-top: 2px solid #2563eb; padding-top: 8px; margin-top: 8px; }\n  .footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #ddd; font-size: 11px; color: #666; text-align: center; }\n</style></head><body>\n  <div class=\"header\">\n    <div class=\"store\">{{ $json.store_name }}</div>\n    <div class=\"meta\">{{ $json.store_address }}</div>\n  </div>\n  <div class=\"inv-title\">INVOICE</div>\n  <div class=\"inv-no\">{{ $json.invoice_no }}</div>\n  <div style=\"font-size:13px; margin-bottom:16px;\">\n    <b>Billed to:</b> {{ $json.buyer_name }}<br>\n    <b>Date:</b> {{ $json.date }}<br>\n    <b>Payment method:</b> {{ $json.payment_method }}\n  </div>\n  <table>\n    <tr><th>Item</th><th class=\"num\">Qty</th><th class=\"num\">Price</th><th class=\"num\">Amount</th></tr>\n    {{ JSON.parse($json.items).map(i => `<tr><td>${i.name}</td><td class=\"num\">${i.qty}</td><td class=\"num\">Rp ${Number(i.price).toLocaleString('id-ID')}</td><td class=\"num\">Rp ${(i.qty*i.price).toLocaleString('id-ID')}</td></tr>`).join('') }}\n  </table>\n  <div class=\"totals\">\n    Subtotal: Rp {{ Number($json.subtotal).toLocaleString('id-ID') }}<br>\n    Shipping: Rp {{ Number($json.shipping).toLocaleString('id-ID') }}<br>\n    <div class=\"grand\">TOTAL: Rp {{ Number($json.total).toLocaleString('id-ID') }}</div>\n  </div>\n  <div class=\"footer\">Thank you for shopping at {{ $json.store_name }}.<br>This invoice was generated automatically by the system.</div>\n</body></html>",
         "options": {}
       },
       "id": "html",
-      "name": "Buat HTML Invoice",
+      "name": "Build HTML Invoice",
       "type": "n8n-nodes-base.html",
       "typeVersion": 1,
       "position": [
@@ -137,7 +137,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -147,11 +147,11 @@
           "parameters": [
             {
               "name": "target",
-              "value": "GANTI_NOMOR_WA_ADMIN"
+              "value": "REPLACE_ADMIN_WHATSAPP_NUMBER"
             },
             {
               "name": "caption",
-              "value": "=Invoice {{ $json.invoice_no }} — {{ $json.nama_pembeli }}"
+              "value": "=Invoice {{ $json.invoice_no }} — {{ $json.buyer_name }}"
             },
             {
               "name": "file",
@@ -162,14 +162,14 @@
         "options": {}
       },
       "id": "send",
-      "name": "Kirim Invoice (WhatsApp)",
+      "name": "Send Invoice (WhatsApp)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
         1120,
         320
       ],
-      "notes": "Kirim PDF invoice via Fonnte send-file. Field file mengarah ke binary dari node Convert ke PDF (properti default: data).",
+      "notes": "Send PDF invoice via Fonnte send-file. Field file mengarah ke binary from node Convert ke PDF (property default: data).",
       "notesInFlow": false
     },
     {
@@ -179,7 +179,7 @@
         "options": {}
       },
       "id": "resp",
-      "name": "Respons API",
+      "name": "Responses API",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
@@ -189,7 +189,7 @@
     },
     {
       "parameters": {
-        "content": "## UMKM 03 — Invoice Otomatis\n\n**Alur:**\nPembayaran masuk → Invoice PDF jadi → kirim ke WhatsApp\n\n**Yang diedit:**\n- `[NAMA TOKO ANDA]` dan `[ALAMAT TOKO ANDA]` di node *Siapkan Data Invoice*\n\n**Cara pakai:**\n1. Aktifkan workflow → dapat URL webhook\n2. Kirim data order (JSON) ke URL itu\n3. Invoice PDF otomatis terkirim\n\n**Format data:**\n{\n  \"nama\": \"Budi\",\n  \"items\": [{\"nama\":\"Kaos\",\"qty\":2,\"harga\":75000}],\n  \"subtotal\": 150000,\n  \"ongkir\": 15000,\n  \"total\": 165000,\n  \"metode\": \"Transfer BCA\"\n}",
+        "content": "## UMKM 03 — Automatic Invoice\n\n**Flow:**\nPayment received → PDF invoice generated → sent to WhatsApp\n\n**What to edit:**\n- `[NAMA TOKO ANDA]` and `[ALAMAT TOKO ANDA]` in the *Prepare Invoice Data* node\n\n**How to use:**\n1. Activate the workflow → you get a webhook URL\n2. Send order data (JSON) to that URL\n3. The PDF invoice is sent automatically\n\n**Data format:**\n{\n  \"nama\": \"Budi\",\n  \"items\": [{\"nama\":\"Kaos\",\"qty\":2,\"harga\":75000}],\n  \"subtotal\": 150000,\n  \"ongkir\": 15000,\n  \"total\": 165000,\n  \"metode\": \"Transfer BCA\"\n}",
         "height": 400,
         "width": 620,
         "color": 5
@@ -205,29 +205,29 @@
     }
   ],
   "connections": {
-    "Pembayaran Diterima": {
+    "Payment Received": {
       "main": [
         [
           {
-            "node": "Siapkan Data Invoice",
+            "node": "Prepare Invoice Data",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Siapkan Data Invoice": {
+    "Prepare Invoice Data": {
       "main": [
         [
           {
-            "node": "Buat HTML Invoice",
+            "node": "Build HTML Invoice",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Buat HTML Invoice": {
+    "Build HTML Invoice": {
       "main": [
         [
           {
@@ -242,18 +242,18 @@
       "main": [
         [
           {
-            "node": "Kirim Invoice (WhatsApp)",
+            "node": "Send Invoice (WhatsApp)",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Kirim Invoice (WhatsApp)": {
+    "Send Invoice (WhatsApp)": {
       "main": [
         [
           {
-            "node": "Respons API",
+            "node": "Responses API",
             "type": "main",
             "index": 0
           }

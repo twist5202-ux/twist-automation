@@ -1,5 +1,5 @@
 {
-  "name": "UMKM 06 — Minta Review Google (Setelah Order Selesai)",
+  "name": "UMKM 06 — Minta Review Google (Setelah Order Done)",
   "nodes": [
     {
       "parameters": {
@@ -8,7 +8,7 @@
         },
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -20,7 +20,7 @@
         "options": {}
       },
       "id": "trigger",
-      "name": "Status Order Berubah",
+      "name": "Order Status Changed",
       "type": "n8n-nodes-base.googleSheetsTrigger",
       "typeVersion": 1,
       "position": [
@@ -29,7 +29,7 @@
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "GANTI_CREDENTIAL_ID",
+          "id": "REPLACE_CREDENTIAL_ID",
           "name": "Google Sheets UMKM"
         }
       }
@@ -57,8 +57,8 @@
         },
         "options": {}
       },
-      "id": "if-selesai",
-      "name": "Status = SELESAI?",
+      "id": "if-done",
+      "name": "Status = DONE?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
@@ -72,7 +72,7 @@
         "unit": "hours"
       },
       "id": "wait",
-      "name": "Tunggu 24 Jam",
+      "name": "Wait 24 Hours",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
@@ -87,7 +87,7 @@
             {
               "id": "v1",
               "name": "pesan",
-              "value": "=Halo {{ $json['Nama'] || $json['nama'] || 'Kak' }}! 👋\n\nTerima kasih sudah order di *[NAMA TOKO ANDA]* 🙏\n\nSemoga produknya puya ya!\n\nKalau ada waktu 1 menit, bantu kami kasih review di Google:\n👉 https://g.page/r/GANTI_PLACE_ID/review\n\nReview lo sangat membantu toko kecil seperti kami berkembang. Terima kasih banyak! ⭐",
+              "value": "=Halo {{ $json['Name'] || $json['name'] || 'Kak' }}! 👋\n\nThank you for ordering from *[YOUR STORE NAME]* 🙏\n\nWe hope you love the product!\n\nIf you have a minute, please help us with a review on Google:\n👉 https://g.page/r/REPLACE_PLACE_ID/review\n\nYour review helps small shops like ours grow. Thank you so much! ⭐",
               "type": "string"
             }
           ]
@@ -95,7 +95,7 @@
         "options": {}
       },
       "id": "format",
-      "name": "Siapkan Pesan Review",
+      "name": "Prepare Review Message",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
@@ -112,7 +112,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -122,30 +122,30 @@
           "parameters": [
             {
               "name": "target",
-              "value": "={{ $json['Chat ID'] || $json['chat_id'] || 'GANTI_NOMOR_WA_ADMIN' }}"
+              "value": "={{ $json['Chat ID'] || $json['chat_id'] || 'REPLACE_ADMIN_WHATSAPP_NUMBER' }}"
             },
             {
               "name": "message",
-              "value": "={{ $json.pesan }}"
+              "value": "={{ $json.message }}"
             }
           ]
         },
         "options": {}
       },
       "id": "send",
-      "name": "Kirim Minta Review (WhatsApp)",
+      "name": "Send Minta Review (WhatsApp)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
         1120,
         220
       ],
-      "notes": "Token Fonnte dari dashboard fonnte.com -> Device -> Token. Ganti GANTI_TOKEN_FONNTE.",
+      "notes": "Token Fonnte from dashboard fonnte.com -> Device -> Token. Ganti REPLACE_FONNTE_TOKEN.",
       "notesInFlow": false
     },
     {
       "parameters": {
-        "content": "## UMKM 06 — Minta Review Otomatis\n\n**Kenapa ini paling worth buat client:**\nIni automation dengan ROI paling jelas. Review Google = pelanggan baru percaya = penjualan naik.\n\n**Alur:**\n1. Status order di Sheets diubah jadi *SELESAI*\n2. Tunggu 24 jam (biar customer sempat pakai produk)\n3. Kirim pesan minta review + link Google\n\n**Yang diedit:**\n- `[NAMA TOKO ANDA]`\n- `GANTI_PLACE_ID` → link review Google Business lo\n- `GANTI_SPREADSHEET_ID`\n\n**Cara dapat link review:**\n1. Google Business Profile → Minta review\n2. Copy link yang muncul\n\n**Catatan:**\nKalau customer belum ada di WhatsApp, ganti node kirim ke WhatsApp/Email.",
+        "content": "## UMKM 06 — Automatic Review Request\n\n**Why this is the most worth building for a client:**\nThis is the automation with the clearest ROI. Google reviews = new customers trust you = sales go up.\n\n**Flow:**\n1. Order status in Sheets is changed to *SELESAI*\n2. Wait 24 hours (so the customer has time to use the product)\n3. Send a review request message + Google link\n\n**What to edit:**\n- `[NAMA TOKO ANDA]`\n- `GANTI_PLACE_ID` → your Google Business review link\n- `GANTI_SPREADSHEET_ID`\n\n**How to get the review link:**\n1. Google Business Profile → Ask for reviews\n2. Copy the link that appears\n\n**Note:**\nIf the customer is not yet on WhatsApp, switch the send node to WhatsApp/Email.",
         "height": 400,
         "width": 620,
         "color": 5
@@ -161,22 +161,22 @@
     }
   ],
   "connections": {
-    "Status Order Berubah": {
+    "Order Status Changed": {
       "main": [
         [
           {
-            "node": "Status = SELESAI?",
+            "node": "Status = DONE?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Status = SELESAI?": {
+    "Status = DONE?": {
       "main": [
         [
           {
-            "node": "Tunggu 24 Jam",
+            "node": "Wait 24 Hours",
             "type": "main",
             "index": 0
           }
@@ -184,22 +184,22 @@
         []
       ]
     },
-    "Tunggu 24 Jam": {
+    "Wait 24 Hours": {
       "main": [
         [
           {
-            "node": "Siapkan Pesan Review",
+            "node": "Prepare Review Message",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Siapkan Pesan Review": {
+    "Prepare Review Message": {
       "main": [
         [
           {
-            "node": "Kirim Minta Review (WhatsApp)",
+            "node": "Send Minta Review (WhatsApp)",
             "type": "main",
             "index": 0
           }

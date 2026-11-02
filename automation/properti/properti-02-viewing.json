@@ -8,7 +8,7 @@
         "options": {}
       },
       "id": "n1",
-      "name": "Request Viewing",
+      "name": "Viewing Request",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
@@ -19,10 +19,10 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst b = $input.first().json.body || $input.first().json;\nreturn [{ json: {\n  nama: b.nama || 'Calon pembeli',\n  wa: String(b.wa || b.phone || '').replace(/[^0-9]/g, ''),\n  properti: b.properti || b.listing || '-',\n  tanggal: b.tanggal || '-',\n  jam: b.jam || '-',\n  agent: b.agent || '-',\n  status: 'terjadwal'\n}}];\n"
+        "jsCode": "\nconst b = $input.first().json.body || $input.first().json;\nreturn [{ json: {\n  name: b.name || 'Prospective buyer',\n  WhatsApp: String(b.WhatsApp || b.phone || '').replace(/[^0-9]/g, ''),\n  property: b.property || b.listing || '-',\n  date: b.date || '-',\n  hour: b.hour || '-',\n  agent: b.agent || '-',\n  status: 'scheduled'\n}}];\n"
       },
       "id": "n2",
-      "name": "Normalize Jadwal",
+      "name": "Normalize Schedule",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -36,7 +36,7 @@
         "operation": "append",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -51,7 +51,7 @@
         "options": {}
       },
       "id": "n3",
-      "name": "Catat Jadwal",
+      "name": "Log Schedule",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
@@ -68,7 +68,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -82,14 +82,14 @@
             },
             {
               "name": "message",
-              "value": "JADWAL VIEWING TERKONFIRMASI ✅\\n============================\\nProperti: {{$json.properti}}\\nTanggal : {{$json.tanggal}}\\nJam     : {{$json.jam}}\\nAgent   : {{$json.agent}}\\n\\nAgent akan menghubungi lo sebelum berangkat. Kalau ada perubahan, kabari ya."
+              "value": "VIEWING SCHEDULE CONFIRMED ✅\\n============================\\nProperty : {{$json.property}}\\nDate     : {{$json.date}}\\nTime    : {{$json.hour}}\\nAgent    : {{$json.agent}}\\n\\nThe agent will contact you before leaving. If anything changes, let us know."
             }
           ]
         },
         "options": {}
       },
       "id": "n4",
-      "name": "Konfirmasi Jadwal",
+      "name": "Confirm Schedule",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -106,7 +106,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -116,18 +116,18 @@
           "parameters": [
             {
               "name": "target",
-              "value": "GANTI_NOMOR_WA_ADMIN"
+              "value": "REPLACE_ADMIN_WHATSAPP_NUMBER"
             },
             {
               "name": "message",
-              "value": "VIEWING TERJADWAL\\n================\\nProperti: {{$('Normalize Jadwal').first().json.properti}}\\nCalon   : {{$('Normalize Jadwal').first().json.nama}}\\nTanggal : {{$('Normalize Jadwal').first().json.tanggal}}\\nJam     : {{$('Normalize Jadwal').first().json.jam}}\\nWA      : {{$('Normalize Jadwal').first().json.wa}}"
+              "value": "VIEWING TERJADWAL\\n================\\nProperti: {{$('Normalize Schedule').first().json.property}}\\nCalon   : {{$('Normalize Schedule').first().json.name}}\\nTanggal : {{$('Normalize Schedule').first().json.date}}\\nJam     : {{$('Normalize Schedule').first().json.hour}}\\nWA      : {{$('Normalize Schedule').first().json.WhatsApp}}"
             }
           ]
         },
         "options": {}
       },
       "id": "n5",
-      "name": "Notif Agent",
+      "name": "Notify Agent",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -147,7 +147,7 @@
         }
       },
       "id": "n6",
-      "name": "Reminder H-1 Jam 16:00",
+      "name": "Reminder D-1 at 16:00",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
       "position": [
@@ -160,7 +160,7 @@
         "operation": "read",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -171,7 +171,7 @@
         "options": {}
       },
       "id": "n7",
-      "name": "Baca Jadwal Besok",
+      "name": "Read Tomorrow's Schedule",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
@@ -181,17 +181,17 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst rows = $input.all().map(r => r.json);\nconst besok = new Date(Date.now() + 86400000).toISOString().slice(0, 10);\nreturn rows.filter(r => String(r.tanggal || '').slice(0, 10) === besok\n  && (r.status || '') !== 'selesai').map(r => ({ json: r }));\n"
+        "jsCode": "\nconst rows = $input.all().map(r => r.json);\nconst tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10);\nreturn rows.filter(r => String(r.date || '').slice(0, 10) === tomorrow\n  && (r.status || '') !== 'done').map(r => ({ json: r }));\n"
       },
       "id": "n8",
-      "name": "Filter Viewing Besok",
+      "name": "Filter Tomorrow's Viewings",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         660,
         520
       ],
-      "notes": "Ambil viewing yang besok."
+      "notes": "Fetch viewing that tomorrow."
     },
     {
       "parameters": {
@@ -202,7 +202,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -216,14 +216,14 @@
             },
             {
               "name": "message",
-              "value": "PENGINGAT VIEWING BESOK ⏰\\n========================\\nProperti: {{$json.properti}}\\nJam     : {{$json.jam}}\\nAgent   : {{$json.agent}}\\n\\nSampai jumpa besok. Bawa KTP ya."
+              "value": "VIEWING REMINDER — TOMORROW ⏰\\n========================\\nProperty : {{$json.property}}\\nTime    : {{$json.hour}}\\nAgent    : {{$json.agent}}\\n\\nSee you tomorrow. Please bring your ID card."
             }
           ]
         },
         "options": {}
       },
       "id": "n9",
-      "name": "Reminder ke Calon Pembeli",
+      "name": "Reminder to Prospective Buyer",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -233,77 +233,77 @@
     }
   ],
   "connections": {
-    "Request Viewing": {
+    "Viewing Request": {
       "main": [
         [
           {
-            "node": "Normalize Jadwal",
+            "node": "Normalize Schedule",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Normalize Jadwal": {
+    "Normalize Schedule": {
       "main": [
         [
           {
-            "node": "Catat Jadwal",
+            "node": "Log Schedule",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Catat Jadwal": {
+    "Log Schedule": {
       "main": [
         [
           {
-            "node": "Konfirmasi Jadwal",
+            "node": "Confirm Schedule",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Konfirmasi Jadwal": {
+    "Confirm Schedule": {
       "main": [
         [
           {
-            "node": "Notif Agent",
+            "node": "Notify Agent",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Reminder H-1 Jam 16:00": {
+    "Reminder D-1 at 16:00": {
       "main": [
         [
           {
-            "node": "Baca Jadwal Besok",
+            "node": "Read Tomorrow's Schedule",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Baca Jadwal Besok": {
+    "Read Tomorrow's Schedule": {
       "main": [
         [
           {
-            "node": "Filter Viewing Besok",
+            "node": "Filter Tomorrow's Viewings",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Filter Viewing Besok": {
+    "Filter Tomorrow's Viewings": {
       "main": [
         [
           {
-            "node": "Reminder ke Calon Pembeli",
+            "node": "Reminder to Prospective Buyer",
             "type": "main",
             "index": 0
           }

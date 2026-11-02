@@ -1,5 +1,5 @@
 {
-  "name": "UMKM 12 — Follow-Up Pembayaran (Belum Bayar → Ingatkan)",
+  "name": "UMKM 12 — Follow-Up Payment (Not yet Bayar → Remind)",
   "nodes": [
     {
       "parameters": {
@@ -13,7 +13,7 @@
         }
       },
       "id": "n1",
-      "name": "Cek Tiap Pagi 09:00",
+      "name": "Check Every Morning at 09:00",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.1,
       "position": [
@@ -26,7 +26,7 @@
         "operation": "read",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -37,7 +37,7 @@
         "options": {}
       },
       "id": "n2",
-      "name": "Baca Order Belum Bayar",
+      "name": "Read Unpaid Orders",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
@@ -50,7 +50,7 @@
         "jsCode": "\nconst rows = $input.all().map(r => r.json);\nreturn rows.filter(r => r.status === 'menunggu_bayar')\n  .map(r => ({ json: r }));\n"
       },
       "id": "n3",
-      "name": "Filter Belum Bayar",
+      "name": "Filter Unpaid",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -67,7 +67,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -77,18 +77,18 @@
           "parameters": [
             {
               "name": "target",
-              "value": "GANTI_NOMOR_WA_ADMIN"
+              "value": "REPLACE_ADMIN_WHATSAPP_NUMBER"
             },
             {
               "name": "message",
-              "value": "Halo {{$json.nama}} 👋\\n\\nOrder *{{$json.order_id}}* masih menunggu pembayaran:\\n\\nProduk : {{$json.produk}}\\nTotal  : Rp {{$json.total}}\\n\\nSegera selesaikan pembayaran sebelum pesanan dibatalkan otomatis.\\n\\nButuh bantuan? Balas pesan ini."
+              "value": "Halo {{$json.name}} 👋\\n\\nOrder *{{$json.order_id}}* is still waiting for payment:\\n\\nProduct : {{$json.product}}\\nTotal   : Rp {{$json.total}}\\n\\nPlease complete the payment before the order is cancelled automatically.\\n\\nNeed help? Just reply to this message."
             }
           ]
         },
         "options": {}
       },
       "id": "n4",
-      "name": "Ingatkan Bayar",
+      "name": "Remind Payment",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -101,7 +101,7 @@
         "operation": "append",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -116,7 +116,7 @@
         "options": {}
       },
       "id": "n5",
-      "name": "Catat Waktu Follow-Up",
+      "name": "Log Time Follow-Up",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
@@ -126,44 +126,44 @@
     }
   ],
   "connections": {
-    "Cek Tiap Pagi 09:00": {
+    "Check Every Morning at 09:00": {
       "main": [
         [
           {
-            "node": "Baca Order Belum Bayar",
+            "node": "Read Unpaid Orders",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Baca Order Belum Bayar": {
+    "Read Unpaid Orders": {
       "main": [
         [
           {
-            "node": "Filter Belum Bayar",
+            "node": "Filter Unpaid",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Filter Belum Bayar": {
+    "Filter Unpaid": {
       "main": [
         [
           {
-            "node": "Ingatkan Bayar",
+            "node": "Remind Payment",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Ingatkan Bayar": {
+    "Remind Payment": {
       "main": [
         [
           {
-            "node": "Catat Waktu Follow-Up",
+            "node": "Log Time Follow-Up",
             "type": "main",
             "index": 0
           }

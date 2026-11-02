@@ -1,5 +1,5 @@
 {
-  "name": "FNB 03 — Delivery Order Tracker (Status ke Pelanggan)",
+  "name": "FNB 03 — Delivery Order Tracker (Status ke Customer)",
   "nodes": [
     {
       "parameters": {
@@ -8,7 +8,7 @@
         "options": {}
       },
       "id": "n1",
-      "name": "Order Delivery Masuk",
+      "name": "Incoming Delivery Order",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
@@ -19,7 +19,7 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst b = $input.first().json.body || $input.first().json;\nreturn [{ json: {\n  order_id: b.order_id || 'ORD-' + Date.now(),\n  pelanggan: b.nama || 'Pelanggan',\n  wa: String(b.wa || b.phone || '').replace(/[^0-9]/g, ''),\n  items: b.items || '-',\n  total: Number(b.total || 0),\n  alamat: b.alamat || '-',\n  status: 'diterima',\n  waktu: new Date().toLocaleString('id-ID')\n}}];\n"
+        "jsCode": "\nconst b = $input.first().json.body || $input.first().json;\nreturn [{ json: {\n  order_id: b.order_id || 'ORD-' + Date.now(),\n  customer: b.name || 'Customer',\n  WhatsApp: String(b.WhatsApp || b.phone || '').replace(/[^0-9]/g, ''),\n  items: b.items || '-',\n  total: Number(b.total || 0),\n  address: b.address || '-',\n  status: 'received',\n  time: new Date().toLocaleString('en-US')\n}}];\n"
       },
       "id": "n2",
       "name": "Normalize Order",
@@ -36,7 +36,7 @@
         "operation": "append",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -51,7 +51,7 @@
         "options": {}
       },
       "id": "n3",
-      "name": "Catat Order",
+      "name": "Log Order",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
@@ -68,7 +68,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -82,14 +82,14 @@
             },
             {
               "name": "message",
-              "value": "ORDER DITERIMA 🧾\\n================\\nOrder  : {{$json.order_id}}\\nItems  : {{$json.items}}\\nTotal  : Rp {{$json.total}}\\nAlamat : {{$json.alamat}}\\n\\nPesanan sedang diproses. Kami kabari lagi kalau sudah dikirim."
+              "value": "ORDER RECEIVED 🧾\\n================\\nOrder  : {{$json.order_id}}\\nItems  : {{$json.items}}\\nTotal   : Rp {{$json.total}}\\nAddress : {{$json.address}}\\n\\nYour order is being processed. We will let you know once it is on the way."
             }
           ]
         },
         "options": {}
       },
       "id": "n4",
-      "name": "Konfirmasi Order Diterima",
+      "name": "Confirm Order Received",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -102,7 +102,7 @@
         "operation": "update",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -121,7 +121,7 @@
         "options": {}
       },
       "id": "n5",
-      "name": "Update Status: Dimasak",
+      "name": "Update Status: Cooking",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
@@ -138,7 +138,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -152,14 +152,14 @@
             },
             {
               "name": "message",
-              "value": "PESANAN SEDANG DIPROSES 👨‍🍳\\nOrder : {{$('Normalize Order').first().json.order_id}}\\nEstimasi : 20-30 menit\\n\\nSebentar ya, lagi dimasak fresh."
+              "value": "YOUR ORDER IS BEING PREPARED 👨‍🍳\\nOrder : {{$('Normalize Order').first().json.order_id}}\\nEstimated : 20-30 minutes\\n\\nJust a moment — it is being cooked fresh."
             }
           ]
         },
         "options": {}
       },
       "id": "n6",
-      "name": "Notif Sedang Dimasak",
+      "name": "Notify Cooking in Progress",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -172,7 +172,7 @@
         "operation": "update",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -191,7 +191,7 @@
         "options": {}
       },
       "id": "n7",
-      "name": "Update Status: Dikirim",
+      "name": "Update Status: Shipped",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
@@ -208,7 +208,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -222,14 +222,14 @@
             },
             {
               "name": "message",
-              "value": "PESANAN DIKIRIM 🛵\\nOrder  : {{$('Normalize Order').first().json.order_id}}\\nDriver : {{$('Normalize Order').first().json.alamat}}\\nEstimasi tiba : 15-25 menit\\n\\nSiap-siap ya!"
+              "value": "ORDER ON THE WAY 🛵\\nOrder  : {{$('Normalize Order').first().json.order_id}}\\nDriver : {{$('Normalize Order').first().json.address}}\\nEstimated arrival : 15-25 minutes\\n\\nGet ready!"
             }
           ]
         },
         "options": {}
       },
       "id": "n8",
-      "name": "Notif Dikirim",
+      "name": "Notify Shipped",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -239,7 +239,7 @@
     }
   ],
   "connections": {
-    "Order Delivery Masuk": {
+    "Incoming Delivery Order": {
       "main": [
         [
           {
@@ -254,62 +254,62 @@
       "main": [
         [
           {
-            "node": "Catat Order",
+            "node": "Log Order",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Catat Order": {
+    "Log Order": {
       "main": [
         [
           {
-            "node": "Konfirmasi Order Diterima",
+            "node": "Confirm Order Received",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Konfirmasi Order Diterima": {
+    "Confirm Order Received": {
       "main": [
         [
           {
-            "node": "Update Status: Dimasak",
+            "node": "Update Status: Cooking",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Update Status: Dimasak": {
+    "Update Status: Cooking": {
       "main": [
         [
           {
-            "node": "Notif Sedang Dimasak",
+            "node": "Notify Cooking in Progress",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Notif Sedang Dimasak": {
+    "Notify Cooking in Progress": {
       "main": [
         [
           {
-            "node": "Update Status: Dikirim",
+            "node": "Update Status: Shipped",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Update Status: Dikirim": {
+    "Update Status: Shipped": {
       "main": [
         [
           {
-            "node": "Notif Dikirim",
+            "node": "Notify Shipped",
             "type": "main",
             "index": 0
           }

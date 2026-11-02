@@ -4,19 +4,19 @@
     {
       "parameters": {
         "httpMethod": "POST",
-        "path": "order-baru",
+        "path": "order-new",
         "responseMode": "responseNode",
         "options": {}
       },
       "id": "webhook",
-      "name": "Order Masuk (Webhook)",
+      "name": "Incoming Order (Webhook)",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
         240,
         320
       ],
-      "webhookId": "order-baru-umkm"
+      "webhookId": "order-new-umkm"
     },
     {
       "parameters": {
@@ -30,26 +30,26 @@
             },
             {
               "id": "o2",
-              "name": "nama_pembeli",
-              "value": "={{ $json.body.nama || $json.nama || 'Tidak diisi' }}",
+              "name": "buyer_name",
+              "value": "={{ $json.body.name || $json.name || 'Not diisi' }}",
               "type": "string"
             },
             {
               "id": "o3",
               "name": "no_hp",
-              "value": "={{ $json.body.hp || $json.hp || 'Tidak diisi' }}",
+              "value": "={{ $json.body.hp || $json.hp || 'Not diisi' }}",
               "type": "string"
             },
             {
               "id": "o4",
               "name": "produk",
-              "value": "={{ $json.body.produk || $json.produk || 'Tidak diisi' }}",
+              "value": "={{ $json.body.product || $json.product || 'Not diisi' }}",
               "type": "string"
             },
             {
               "id": "o5",
               "name": "jumlah",
-              "value": "={{ $json.body.jumlah || $json.jumlah || 1 }}",
+              "value": "={{ $json.body.amount || $json.amount || 1 }}",
               "type": "number"
             },
             {
@@ -61,13 +61,13 @@
             {
               "id": "o7",
               "name": "alamat",
-              "value": "={{ $json.body.alamat || $json.alamat || 'Tidak diisi' }}",
+              "value": "={{ $json.body.address || $json.address || 'Not diisi' }}",
               "type": "string"
             },
             {
               "id": "o8",
               "name": "catatan",
-              "value": "={{ $json.body.catatan || $json.catatan || '-' }}",
+              "value": "={{ $json.body.note || $json.note || '-' }}",
               "type": "string"
             },
             {
@@ -87,7 +87,7 @@
         "options": {}
       },
       "id": "norm",
-      "name": "Rapikan Data Order",
+      "name": "Normalize Order Data",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
@@ -100,7 +100,7 @@
         "operation": "append",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -112,14 +112,14 @@
           "mappingMode": "defineBelow",
           "value": {
             "Order ID": "={{ $json.order_id }}",
-            "Tanggal": "={{ $json.tanggal }}",
-            "Nama": "={{ $json.nama_pembeli }}",
+            "Tanggal": "={{ $json.date }}",
+            "Nama": "={{ $json.buyer_name }}",
             "No HP": "={{ $json.no_hp }}",
-            "Produk": "={{ $json.produk }}",
-            "Jumlah": "={{ $json.jumlah }}",
+            "Produk": "={{ $json.product }}",
+            "Jumlah": "={{ $json.amount }}",
             "Total": "={{ $json.total_harga }}",
-            "Alamat": "={{ $json.alamat }}",
-            "Catatan": "={{ $json.catatan }}",
+            "Alamat": "={{ $json.address }}",
+            "Catatan": "={{ $json.note }}",
             "Status": "={{ $json.status }}"
           },
           "matchingColumns": [],
@@ -128,7 +128,7 @@
         "options": {}
       },
       "id": "sheets",
-      "name": "Simpan ke Google Sheets",
+      "name": "Save to Google Sheets",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [
@@ -137,7 +137,7 @@
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "GANTI_CREDENTIAL_ID",
+          "id": "REPLACE_CREDENTIAL_ID",
           "name": "Google Sheets UMKM"
         }
       }
@@ -151,7 +151,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -161,35 +161,35 @@
           "parameters": [
             {
               "name": "target",
-              "value": "GANTI_NOMOR_WA_ADMIN"
+              "value": "REPLACE_ADMIN_WHATSAPP_NUMBER"
             },
             {
               "name": "message",
-              "value": "=🛒 *ORDER BARU MASUK*\n\nOrder ID: {{ $json.order_id }}\nNama: {{ $json.nama_pembeli }}\nNo HP: {{ $json.no_hp }}\nProduk: {{ $json.produk }} (x{{ $json.jumlah }})\nTotal: Rp {{ $json.total_harga }}\nAlamat: {{ $json.alamat }}\nCatatan: {{ $json.catatan }}\n\nSegera proses ya!"
+              "value": "=🛒 *NEW ORDERS*\n\nOrder ID: {{ $json.order_id }}\nName: {{ $json.buyer_name }}\nPhone: {{ $json.no_hp }}\nProduct: {{ $json.product }} (x{{ $json.amount }})\nTotal: Rp {{ $json.total_harga }}\nAddress: {{ $json.address }}\nNote: {{ $json.note }}\n\nProcess it right away!"
             }
           ]
         },
         "options": {}
       },
       "id": "notif",
-      "name": "Notifikasi WhatsApp",
+      "name": "WhatsApp Notification",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
         900,
         320
       ],
-      "notes": "Token Fonnte dari dashboard fonnte.com -> Device -> Token. Ganti GANTI_TOKEN_FONNTE.",
+      "notes": "Token Fonnte from dashboard fonnte.com -> Device -> Token. Ganti REPLACE_FONNTE_TOKEN.",
       "notesInFlow": false
     },
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={ \"status\": \"ok\", \"order_id\": \"{{ $json.order_id }}\", \"pesan\": \"Order diterima. Tim kami akan konfirmasi.\" }",
+        "responseBody": "={ \"status\": \"ok\", \"order_id\": \"{{ $json.order_id }}\", \"message\": \"Order received. Our team will confirm shortly.\" }",
         "options": {}
       },
       "id": "resp",
-      "name": "Konfirmasi ke Pembeli",
+      "name": "Confirm to Buyer",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
@@ -199,7 +199,7 @@
     },
     {
       "parameters": {
-        "content": "## UMKM 02 — Order Masuk → Notifikasi + Sheets\n\n**Cara pakai:**\n1. Bikin Google Sheet dengan tab bernama *Orders*\n2. Isi header: Order ID, Tanggal, Nama, No HP, Produk, Jumlah, Total, Alamat, Catatan, Status\n3. Ganti `GANTI_SPREADSHEET_ID` dengan ID sheet lo\n4. Aktifkan workflow → dapat URL webhook\n5. Pasang URL itu di form order (Google Form, website, WA)\n\n**Hasil:**\n- Order masuk → tersimpan di Sheets\n- Lo dapat notifikasi WhatsApp langsung\n- Pembeli dapat konfirmasi otomatis",
+        "content": "## UMKM 02 — Incoming Order → Notification + Sheets\n\n**How to use:**\n1. Create a Google Sheet with a tab named *Orders*\n2. Fill in the headers: Order ID, Tanggal, Nama, No HP, Produk, Jumlah, Total, Alamat, Catatan, Status\n3. Replace `GANTI_SPREADSHEET_ID` with your sheet ID\n4. Activate the workflow → you get a webhook URL\n5. Put that URL in your order form (Google Form, website, WhatsApp)\n\n**Result:**\n- Incoming orders are saved to Sheets\n- You get a WhatsApp notification immediately\n- The buyer gets an automatic confirmation",
         "height": 340,
         "width": 620,
         "color": 4
@@ -215,38 +215,38 @@
     }
   ],
   "connections": {
-    "Order Masuk (Webhook)": {
+    "Incoming Order (Webhook)": {
       "main": [
         [
           {
-            "node": "Rapikan Data Order",
+            "node": "Normalize Order Data",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Rapikan Data Order": {
+    "Normalize Order Data": {
       "main": [
         [
           {
-            "node": "Simpan ke Google Sheets",
+            "node": "Save to Google Sheets",
             "type": "main",
             "index": 0
           },
           {
-            "node": "Notifikasi WhatsApp",
+            "node": "WhatsApp Notification",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Notifikasi WhatsApp": {
+    "WhatsApp Notification": {
       "main": [
         [
           {
-            "node": "Konfirmasi ke Pembeli",
+            "node": "Confirm to Buyer",
             "type": "main",
             "index": 0
           }

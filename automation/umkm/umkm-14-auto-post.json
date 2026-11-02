@@ -1,5 +1,5 @@
 {
-  "name": "UMKM 14 — Auto Post Marketplace (Sheets → Format Iklan)",
+  "name": "UMKM 14 — Auto Post Marketplace (Sheets → Format Ad)",
   "nodes": [
     {
       "parameters": {
@@ -13,7 +13,7 @@
         }
       },
       "id": "n1",
-      "name": "Cek Produk Baru Tiap Pagi",
+      "name": "Check New Products Every Morning",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.1,
       "position": [
@@ -26,7 +26,7 @@
         "operation": "read",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -37,7 +37,7 @@
         "options": {}
       },
       "id": "n2",
-      "name": "Baca Produk Baru",
+      "name": "Read New Products",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
@@ -47,10 +47,10 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst rows = $input.all().map(r => r.json);\nreturn rows.filter(r => r.posted !== 'ya').map(r => {\n  const iklan =\n    '🔥 ' + r.nama + ' 🔥\\n\\n' +\n    '💰 Harga: Rp ' + Number(r.harga).toLocaleString('id') + '\\n' +\n    '📦 Stok: ' + r.stok + ' pcs\\n' +\n    '📏 Ukuran: ' + (r.ukuran || 'all size') + '\\n\\n' +\n    '✅ Kualitas terjamin\\n' +\n    '✅ Bisa COD / kirim\\n' +\n    '✅ Garansi tukar\\n\\n' +\n    '📲 Order: wa.me/' + r.admin_wa + '\\n' +\n    '📍 ' + (r.kota || 'Indonesia') + '\\n\\n' +\n    '#jualan #online #murah #kualitas';\n  return { json: { ...r, iklan } };\n});\n"
+        "jsCode": "\nconst rows = $input.all().map(r => r.json);\nreturn rows.filter(r => r.posted !== 'yes').map(r => {\n  const ad =\n    '🔥 ' + r.name + ' 🔥\\n\\n' +\n    '💰 Price: Rp ' + Number(r.price).toLocaleString('en-US') + '\\n' +\n    '📦 Stock: ' + r.stock + ' pcs\\n' +\n    '📏 Size: ' + (r.size || 'all sizes') + '\\n\\n' +\n    '✅ Quality guaranteed\\n' +\n    '✅ COD available / shipping\\n' +\n    '✅ Exchange warranty\\n\\n' +\n    '📲 Order: WhatsApp.me/' + r.admin_wa + '\\n' +\n    '📍 ' + (r.city || 'Indonesia') + '\\n\\n' +\n    '#sale #online #cheap #quality';\n  return { json: { ...r, ad } };\n});\n"
       },
       "id": "n3",
-      "name": "Buat Teks Iklan",
+      "name": "Build Ad Copy",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -67,7 +67,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -77,18 +77,18 @@
           "parameters": [
             {
               "name": "target",
-              "value": "GANTI_NOMOR_WA_ADMIN"
+              "value": "REPLACE_ADMIN_WHATSAPP_NUMBER"
             },
             {
               "name": "message",
-              "value": "={{$json.iklan}}"
+              "value": "={{$json.ad}}"
             }
           ]
         },
         "options": {}
       },
       "id": "n4",
-      "name": "Kirim Draft ke Admin",
+      "name": "Send Draft to Admin",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -101,7 +101,7 @@
         "operation": "append",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -116,7 +116,7 @@
         "options": {}
       },
       "id": "n5",
-      "name": "Tandai Sudah Dibuat",
+      "name": "Tandai Already Dibuat",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
@@ -126,44 +126,44 @@
     }
   ],
   "connections": {
-    "Cek Produk Baru Tiap Pagi": {
+    "Check New Products Every Morning": {
       "main": [
         [
           {
-            "node": "Baca Produk Baru",
+            "node": "Read New Products",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Baca Produk Baru": {
+    "Read New Products": {
       "main": [
         [
           {
-            "node": "Buat Teks Iklan",
+            "node": "Build Ad Copy",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Buat Teks Iklan": {
+    "Build Ad Copy": {
       "main": [
         [
           {
-            "node": "Kirim Draft ke Admin",
+            "node": "Send Draft to Admin",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Kirim Draft ke Admin": {
+    "Send Draft to Admin": {
       "main": [
         [
           {
-            "node": "Tandai Sudah Dibuat",
+            "node": "Tandai Already Dibuat",
             "type": "main",
             "index": 0
           }

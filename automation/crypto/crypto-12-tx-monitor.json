@@ -1,5 +1,5 @@
 {
-  "name": "CRYPTO 12 — Bridge / Tx Status Monitor (Pantau Sampai Selesai)",
+  "name": "CRYPTO 12 — Bridge / Tx Status Monitor (Watch Sampai Done)",
   "nodes": [
     {
       "parameters": {
@@ -7,7 +7,7 @@
         "options": {}
       },
       "id": "n1",
-      "name": "Tx Hash Masuk",
+      "name": "Tx Hash Incoming",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
@@ -18,10 +18,10 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst d = $input.first().json;\nreturn [{ json: {\n  hash: d.hash || d.tx,\n  chain: d.chain || 'bsc',\n  jumlah: d.jumlah || '?',\n  status: 'pending',\n  waktu: new Date().toISOString()\n} }];\n"
+        "jsCode": "\nconst d = $input.first().json;\nreturn [{ json: {\n  hash: d.hash || d.tx,\n  chain: d.chain || 'bsc',\n  amount: d.amount || '?',\n  status: 'pending',\n  time: new Date().toISOString()\n} }];\n"
       },
       "id": "n2",
-      "name": "Simpan Tx",
+      "name": "Save Tx",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -34,7 +34,7 @@
         "operation": "append",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -49,7 +49,7 @@
         "options": {}
       },
       "id": "n3",
-      "name": "Catat Tx",
+      "name": "Log Tx",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
@@ -66,7 +66,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -76,18 +76,18 @@
           "parameters": [
             {
               "name": "target",
-              "value": "GANTI_NOMOR_WA_ADMIN"
+              "value": "REPLACE_ADMIN_WHATSAPP_NUMBER"
             },
             {
               "name": "message",
-              "value": "✅ Tx dicatat, dipantau.\\n\\nHash : {{$json.hash}}\\nChain: {{$json.chain}}\\n\\nGue kabarin kalau statusnya berubah."
+              "value": "✅ Tx logged, dipantau.\\n\\nHash : {{$json.hash}}\\nChain: {{$json.chain}}\\n\\nGue kabarin if statusnya berubah."
             }
           ]
         },
         "options": {}
       },
       "id": "n4",
-      "name": "Konfirmasi Dicatat",
+      "name": "Confirm Logged",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -97,33 +97,33 @@
     }
   ],
   "connections": {
-    "Tx Hash Masuk": {
+    "Tx Hash Incoming": {
       "main": [
         [
           {
-            "node": "Simpan Tx",
+            "node": "Save Tx",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Simpan Tx": {
+    "Save Tx": {
       "main": [
         [
           {
-            "node": "Catat Tx",
+            "node": "Log Tx",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Catat Tx": {
+    "Log Tx": {
       "main": [
         [
           {
-            "node": "Konfirmasi Dicatat",
+            "node": "Confirm Logged",
             "type": "main",
             "index": 0
           }

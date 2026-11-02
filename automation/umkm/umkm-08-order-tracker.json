@@ -1,5 +1,5 @@
 {
-  "name": "UMKM 08 - Order Status Tracker (Cek Pesanan)",
+  "name": "UMKM 08 - Order Status Tracker (Check Pesanan)",
   "nodes": [
     {
       "parameters": {
@@ -9,14 +9,14 @@
         "options": {}
       },
       "id": "webhook",
-      "name": "Customer Tanya Order",
+      "name": "Customer Asks About Order",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
         240,
         320
       ],
-      "webhookId": "cek-order-umkm"
+      "webhookId": "check-order-umkm"
     },
     {
       "parameters": {
@@ -24,16 +24,16 @@
           "assignments": [
             {
               "id": "b1",
-              "name": "nomor_order",
+              "name": "order_number",
               "type": "string",
-              "value": "={{ $json.body.nomor_order || $json.query.nomor_order }}"
+              "value": "={{ $json.body.order_number || $json.query.order_number }}"
             }
           ]
         },
         "options": {}
       },
       "id": "set1",
-      "name": "Ambil Nomor Order",
+      "name": "Fetch Order Number",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
@@ -57,15 +57,15 @@
         "filtersUI": {
           "values": [
             {
-              "lookupColumn": "nomor_order",
-              "lookupValue": "={{ $json.nomor_order }}"
+              "lookupColumn": "order_number",
+              "lookupValue": "={{ $json.order_number }}"
             }
           ]
         },
         "options": {}
       },
       "id": "sheets",
-      "name": "Cari Order di Sheets",
+      "name": "Find Order in Sheets",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.4,
       "position": [
@@ -84,7 +84,7 @@
           "conditions": [
             {
               "id": "cond1",
-              "leftValue": "={{ $json.nomor_order }}",
+              "leftValue": "={{ $json.order_number }}",
               "rightValue": "",
               "operator": {
                 "type": "string",
@@ -96,7 +96,7 @@
         }
       },
       "id": "if",
-      "name": "Order Ketemu?",
+      "name": "Order Found?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
@@ -110,16 +110,16 @@
           "assignments": [
             {
               "id": "c1",
-              "name": "jawaban",
+              "name": "answeran",
               "type": "string",
-              "value": "=Status Pesanan #{{ $json.nomor_order }}\\n\\nProduk: {{ $json.produk }}\\nStatus: {{ $json.status }}\\nKurir: {{ $json.kurir }}\\nNo. Resi: {{ $json.resi }}\\n\\nTerima kasih sudah order!"
+              "value": "=Order Status #{{ $json.order_number }}\\n\\nProduct: {{ $json.product }}\\nStatus: {{ $json.status }}\\nCourier: {{ $json.courier }}\\nTracking no.: {{ $json.tracking number }}\\n\\nThank you for your order!"
             }
           ]
         },
         "options": {}
       },
       "id": "set2",
-      "name": "Bikin Jawaban Ketemu",
+      "name": "Build Found Answer",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
@@ -133,16 +133,16 @@
           "assignments": [
             {
               "id": "d1",
-              "name": "jawaban",
+              "name": "answeran",
               "type": "string",
-              "value": "=Nomor order {{ $json.nomor_order }} gak ketemu.\\n\\nCoba cek lagi nomor order lo, atau chat admin ya."
+              "value": "=Order number {{ $json.order_number }} was not found.\\n\\nPlease double-check your order number, or chat with an admin."
             }
           ]
         },
         "options": {}
       },
       "id": "set3",
-      "name": "Bikin Jawaban Gak Ketemu",
+      "name": "Build Not Found Answer",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
@@ -156,7 +156,7 @@
         "options": {}
       },
       "id": "merge",
-      "name": "Gabung Jawaban",
+      "name": "Merge Answer",
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3,
       "position": [
@@ -167,11 +167,11 @@
     {
       "parameters": {
         "respondWith": "text",
-        "responseBody": "={{ $json.jawaban }}",
+        "responseBody": "={{ $json.answeran }}",
         "options": {}
       },
       "id": "resp",
-      "name": "Balas Customer",
+      "name": "Reply Customer",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
@@ -181,84 +181,84 @@
     }
   ],
   "connections": {
-    "Customer Tanya Order": {
+    "Customer Asks About Order": {
       "main": [
         [
           {
-            "node": "Ambil Nomor Order",
+            "node": "Fetch Order Number",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Ambil Nomor Order": {
+    "Fetch Order Number": {
       "main": [
         [
           {
-            "node": "Cari Order di Sheets",
+            "node": "Find Order in Sheets",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Cari Order di Sheets": {
+    "Find Order in Sheets": {
       "main": [
         [
           {
-            "node": "Order Ketemu?",
+            "node": "Order Found?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Order Ketemu?": {
+    "Order Found?": {
       "main": [
         [
           {
-            "node": "Bikin Jawaban Ketemu",
+            "node": "Build Found Answer",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Bikin Jawaban Gak Ketemu",
+            "node": "Build Not Found Answer",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Bikin Jawaban Ketemu": {
+    "Build Found Answer": {
       "main": [
         [
           {
-            "node": "Gabung Jawaban",
+            "node": "Merge Answer",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Bikin Jawaban Gak Ketemu": {
+    "Build Not Found Answer": {
       "main": [
         [
           {
-            "node": "Gabung Jawaban",
+            "node": "Merge Answer",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Gabung Jawaban": {
+    "Merge Answer": {
       "main": [
         [
           {
-            "node": "Balas Customer",
+            "node": "Reply Customer",
             "type": "main",
             "index": 0
           }

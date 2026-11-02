@@ -1,5 +1,5 @@
 {
-  "name": "PRODUKTIVITAS 01 — Morning Briefing (Cuaca + Crypto + Berita)",
+  "name": "PRODUKTIVITAS 01 — Morning Briefing (Weather + Crypto + Berita)",
   "nodes": [
     {
       "parameters": {
@@ -13,7 +13,7 @@
         }
       },
       "id": "n1",
-      "name": "Tiap Pagi 06:30",
+      "name": "Every Morning 06:30",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.1,
       "position": [
@@ -23,11 +23,11 @@
     },
     {
       "parameters": {
-        "url": "https://api.open-meteo.com/v1/forecast?latitude=GANTI_LATITUDE&longitude=GANTI_LONGITUDE&daily=temperature_2m_max,precipitation_probability_max&timezone=Asia/Jakarta&forecast_days=1",
+        "url": "https://api.open-meteo.com/v1/forecast?latitude=REPLACE_LATITUDE&longitude=REPLACE_LONGITUDE&daily=temperature_2m_max,precipitation_probability_max&timezone=Asia/Jakarta&forecast_days=1",
         "options": {}
       },
       "id": "n2",
-      "name": "Cuaca Hari Ini",
+      "name": "Today's Weather",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -41,7 +41,7 @@
         "options": {}
       },
       "id": "n3",
-      "name": "Harga Crypto",
+      "name": "Crypto Price",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -51,10 +51,10 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst cuaca = $('Cuaca Hari Ini').first().json.daily;\nconst crypto = $input.first().json;\n\nlet out = 'SELAMAT PAGI ☀️\\n================\\n\\n';\nout += 'CUACA\\n';\nout += '  Maks   : ' + cuaca.temperature_2m_max[0] + '°C\\n';\nout += '  Hujan  : ' + cuaca.precipitation_probability_max[0] + '%\\n\\n';\nout += 'CRYPTO\\n';\nout += '  BTC : $' + crypto.bitcoin.usd.toLocaleString('id') +\n       ' (' + crypto.bitcoin.usd_24h_change.toFixed(2) + '%)\\n';\nout += '  ETH : $' + crypto.ethereum.usd.toLocaleString('id') +\n       ' (' + crypto.ethereum.usd_24h_change.toFixed(2) + '%)\\n\\n';\nout += 'Semangat kerja hari ini! 💪';\nreturn [{ json: { pesan: out } }];\n"
+        "jsCode": "\nconst weather = $('Today's Weather').first().json.daily;\nconst crypto = $input.first().json;\n\nlet out = 'MORNAT PAGI ☀️\\n================\\n\\n';\nout += 'CUACA\\n';\nout += '  Maks   : ' + weather.temperature_2m_max[0] + '°C\\n';\nout += '  Rain  : ' + weather.precipitation_probability_max[0] + '%\\n\\n';\nout += 'CRYPTO\\n';\nout += '  BTC : $' + crypto.bitcoin.usd.toLocaleString('id') +\n       ' (' + crypto.bitcoin.usd_24h_change.toFixed(2) + '%)\\n';\nout += '  ETH : $' + crypto.ethereum.usd.toLocaleString('id') +\n       ' (' + crypto.ethereum.usd_24h_change.toFixed(2) + '%)\\n\\n';\nout += 'Semangat work today! 💪';\nreturn [{ json: { message: out } }];\n"
       },
       "id": "n4",
-      "name": "Susun Briefing",
+      "name": "Build Briefing",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -71,7 +71,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -81,18 +81,18 @@
           "parameters": [
             {
               "name": "target",
-              "value": "GANTI_NOMOR_WA_ADMIN"
+              "value": "REPLACE_ADMIN_WHATSAPP_NUMBER"
             },
             {
               "name": "message",
-              "value": "={{$json.pesan}}"
+              "value": "={{$json.message}}"
             }
           ]
         },
         "options": {}
       },
       "id": "n5",
-      "name": "Kirim Briefing",
+      "name": "Send Briefing",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -102,38 +102,38 @@
     }
   ],
   "connections": {
-    "Tiap Pagi 06:30": {
+    "Every Morning 06:30": {
       "main": [
         [
           {
-            "node": "Cuaca Hari Ini",
+            "node": "Today's Weather",
             "type": "main",
             "index": 0
           },
           {
-            "node": "Harga Crypto",
+            "node": "Crypto Price",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Harga Crypto": {
+    "Crypto Price": {
       "main": [
         [
           {
-            "node": "Susun Briefing",
+            "node": "Build Briefing",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Susun Briefing": {
+    "Build Briefing": {
       "main": [
         [
           {
-            "node": "Kirim Briefing",
+            "node": "Send Briefing",
             "type": "main",
             "index": 0
           }

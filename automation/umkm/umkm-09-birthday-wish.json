@@ -1,5 +1,5 @@
 {
-  "name": "UMKM 09 - Birthday Wish (Ucapan + Diskon Otomatis)",
+  "name": "UMKM 09 - Birthday Wish (Ucapan + Discount Otomatis)",
   "nodes": [
     {
       "parameters": {
@@ -13,7 +13,7 @@
         }
       },
       "id": "sched",
-      "name": "Cek Ulang Tahun Tiap Pagi",
+      "name": "Check Birthdays Every Morning",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
       "position": [
@@ -37,7 +37,7 @@
         "options": {}
       },
       "id": "sheets",
-      "name": "Ambil Data Customer",
+      "name": "Fetch Customer Data",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.4,
       "position": [
@@ -51,7 +51,7 @@
         "options": {}
       },
       "id": "split",
-      "name": "Cek Per Customer",
+      "name": "Check Per Customer",
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1,
       "position": [
@@ -82,7 +82,7 @@
         }
       },
       "id": "if",
-      "name": "Ultah Hari Ini?",
+      "name": "Birthday Today?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
@@ -98,7 +98,7 @@
               "id": "e1",
               "name": "pesan",
               "type": "string",
-              "value": "=Selamat ulang tahun, {{ $json.nama }}!\\n\\nSebagai hadiah, kasih kode diskon:\\nULANGTAHUN10\\n\\nBerlaku 7 hari untuk semua produk.\\n\\nSalam,\\n[Nama Toko]"
+              "value": "=Happy birthday, {{ $json.name }}!\\n\\nAs a gift, here is a discount code:\\nULANGTAHUN10\\n\\nValid for 7 days on all products.\\n\\nSalam,\\n[Name Store]"
             },
             {
               "id": "e2",
@@ -111,7 +111,7 @@
         "options": {}
       },
       "id": "set",
-      "name": "Bikin Pesan Ultah",
+      "name": "Build Birthday Message",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
@@ -128,7 +128,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -142,14 +142,14 @@
             },
             {
               "name": "message",
-              "value": "={{ $json.pesan }}"
+              "value": "={{ $json.message }}"
             }
           ]
         },
         "options": {}
       },
       "id": "http",
-      "name": "Kirim via Gateway WhatsApp",
+      "name": "Send via Gateway WhatsApp",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
@@ -173,15 +173,15 @@
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "nama": "={{ $json.nama }}",
+            "nama": "={{ $json.name }}",
             "tanggal_kirim": "={{ $now.format('yyyy-MM-dd') }}",
-            "pesan": "={{ $json.pesan }}"
+            "pesan": "={{ $json.message }}"
           }
         },
         "options": {}
       },
       "id": "log",
-      "name": "Catat di Sheets",
+      "name": "Log to Sheets",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.4,
       "position": [
@@ -191,66 +191,66 @@
     }
   ],
   "connections": {
-    "Cek Ulang Tahun Tiap Pagi": {
+    "Check Birthdays Every Morning": {
       "main": [
         [
           {
-            "node": "Ambil Data Customer",
+            "node": "Fetch Customer Data",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Ambil Data Customer": {
+    "Fetch Customer Data": {
       "main": [
         [
           {
-            "node": "Cek Per Customer",
+            "node": "Check Per Customer",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Cek Per Customer": {
+    "Check Per Customer": {
       "main": [
         [
           {
-            "node": "Ultah Hari Ini?",
+            "node": "Birthday Today?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Ultah Hari Ini?": {
+    "Birthday Today?": {
       "main": [
         [
           {
-            "node": "Bikin Pesan Ultah",
+            "node": "Build Birthday Message",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Bikin Pesan Ultah": {
+    "Build Birthday Message": {
       "main": [
         [
           {
-            "node": "Kirim via Gateway WhatsApp",
+            "node": "Send via Gateway WhatsApp",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Kirim via Gateway WhatsApp": {
+    "Send via Gateway WhatsApp": {
       "main": [
         [
           {
-            "node": "Catat di Sheets",
+            "node": "Log to Sheets",
             "type": "main",
             "index": 0
           }

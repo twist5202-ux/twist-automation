@@ -13,7 +13,7 @@
         }
       },
       "id": "n1",
-      "name": "Cek Tiap Pagi 09:00",
+      "name": "Check Every Morning at 09:00",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
       "position": [
@@ -26,7 +26,7 @@
         "operation": "read",
         "documentId": {
           "__rl": true,
-          "value": "GANTI_SPREADSHEET_ID",
+          "value": "REPLACE_SPREADSHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -37,7 +37,7 @@
         "options": {}
       },
       "id": "n2",
-      "name": "Baca Daftar Tamu",
+      "name": "Read List Guest",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
@@ -47,17 +47,17 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst rows = $input.all().map(r => r.json);\nconst now = new Date();\nnow.setHours(0, 0, 0, 0);\n\nreturn rows.filter(r => {\n  if ((r.konfirmasi || '') !== 'hadir') return false;\n  if (!r.tanggal) return false;\n  const tgl = new Date(r.tanggal);\n  tgl.setHours(0, 0, 0, 0);\n  const sisa = Math.round((tgl - now) / 86400000);\n  return sisa === 3 || sisa === 1;\n}).map(r => {\n  const tgl = new Date(r.tanggal);\n  tgl.setHours(0, 0, 0, 0);\n  const sisa = Math.round((tgl - now) / 86400000);\n  return { json: { ...r, sisa_hari: sisa } };\n});\n"
+        "jsCode": "\nconst rows = $input.all().map(r => r.json);\nconst now = new Date();\nnow.setHours(0, 0, 0, 0);\n\nreturn rows.filter(r => {\n  if ((r.confirm || '') !== 'hadir') return false;\n  if (!r.date) return false;\n  const date = new Date(r.date);\n  date.setHours(0, 0, 0, 0);\n  const sisa = Math.round((date - now) / 86400000);\n  return sisa === 3 || sisa === 1;\n}).map(r => {\n  const date = new Date(r.date);\n  date.setHours(0, 0, 0, 0);\n  const sisa = Math.round((date - now) / 86400000);\n  return { json: { ...r, sisa_hari: sisa } };\n});\n"
       },
       "id": "n3",
-      "name": "Hitung Mundur & Filter",
+      "name": "Calculate Countdown & Filter",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         180,
         300
       ],
-      "notes": "Ambil tamu hadir yang event-nya H-3 atau H-1."
+      "notes": "Fetch tamu hadir that event-the H-3 atau H-1."
     },
     {
       "parameters": {
@@ -99,7 +99,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -113,14 +113,14 @@
             },
             {
               "name": "message",
-              "value": "BESOK HARI BESARNYA! 🎉\\n======================\\n{{$json.event}}\\n📅 {{$json.tanggal}} · {{$json.jam}}\\n📍 {{$json.lokasi}}\\n\\nKami tunggu kedatangan lo, {{$json.nama}}. Jangan lupa bawa undangan digital ini ya."
+              "value": "TOMORROW IS THE BIG DAY! 🎉\\n======================\\n{{$json.event}}\\n📅 {{$json.date}} · {{$json.hour}}\\n📍 {{$json.location}}\\n\\nWe look forward to seeing you, {{$json.name}}. Do not forget to bring this digital invitation."
             }
           ]
         },
         "options": {}
       },
       "id": "n5",
-      "name": "Reminder H-1 (Besok)",
+      "name": "Reminder D-1 (Tomorrow)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -137,7 +137,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -151,7 +151,7 @@
             },
             {
               "name": "message",
-              "value": "HITUNG MUNDUR — 3 HARI LAGI ⏳\\n============================\\n{{$json.event}}\\n📅 {{$json.tanggal}} · {{$json.jam}}\\n📍 {{$json.lokasi}}\\n\\nSiapin outfit & jadwal lo, {{$json.nama}}. Kami tunggu!"
+              "value": "COUNTDOWN — 3 DAYS TO GO ⏳\\n============================\\n{{$json.event}}\\n📅 {{$json.date}} · {{$json.hour}}\\n📍 {{$json.location}}\\n\\nGet your outfit and schedule ready, {{$json.name}}. See you there!"
             }
           ]
         },
@@ -168,29 +168,29 @@
     }
   ],
   "connections": {
-    "Cek Tiap Pagi 09:00": {
+    "Check Every Morning at 09:00": {
       "main": [
         [
           {
-            "node": "Baca Daftar Tamu",
+            "node": "Read List Guest",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Baca Daftar Tamu": {
+    "Read List Guest": {
       "main": [
         [
           {
-            "node": "Hitung Mundur & Filter",
+            "node": "Calculate Countdown & Filter",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Hitung Mundur & Filter": {
+    "Calculate Countdown & Filter": {
       "main": [
         [
           {
@@ -205,7 +205,7 @@
       "main": [
         [
           {
-            "node": "Reminder H-1 (Besok)",
+            "node": "Reminder D-1 (Tomorrow)",
             "type": "main",
             "index": 0
           },

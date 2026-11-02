@@ -1,5 +1,5 @@
 {
-  "name": "UMKM 07 - Stok Alert (Inventory Monitor)",
+  "name": "UMKM 07 - Stock Alert (Inventory Monitor)",
   "nodes": [
     {
       "parameters": {
@@ -13,7 +13,7 @@
         }
       },
       "id": "sched",
-      "name": "Cek Stok Tiap Pagi",
+      "name": "Check Stock Every Morning",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
       "position": [
@@ -37,7 +37,7 @@
         "options": {}
       },
       "id": "sheets",
-      "name": "Ambil Data Stok",
+      "name": "Fetch Stock Data",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.4,
       "position": [
@@ -51,7 +51,7 @@
         "options": {}
       },
       "id": "split",
-      "name": "Cek Per Produk",
+      "name": "Check Per Product",
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1,
       "position": [
@@ -70,7 +70,7 @@
           "conditions": [
             {
               "id": "cond1",
-              "leftValue": "={{ $json.stok }}",
+              "leftValue": "={{ $json.stock }}",
               "rightValue": "={{ $json.minimum }}",
               "operator": {
                 "type": "number",
@@ -82,7 +82,7 @@
         }
       },
       "id": "if",
-      "name": "Stok Di Bawah Minimum?",
+      "name": "Stock Below Minimum?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
@@ -98,20 +98,20 @@
               "id": "a1",
               "name": "pesan",
               "type": "string",
-              "value": "=STOK MENIPIS\\n\\nProduk: {{ $json.produk }}\\nSisa stok: {{ $json.stok }} unit\\nMinimum: {{ $json.minimum }} unit\\n\\nRestock sekarang sebelum kehabisan."
+              "value": "=LOW STOCK\\n\\nProduct: {{ $json.product }}\\nRemaining: {{ $json.stock }} units\\nMinimum: {{ $json.minimum }} units\\n\\nRestock now before it runs out."
             },
             {
               "id": "a2",
               "name": "chat_id",
               "type": "string",
-              "value": "GANTI_NOMOR_WA_ADMIN"
+              "value": "REPLACE_ADMIN_WHATSAPP_NUMBER"
             }
           ]
         },
         "options": {}
       },
       "id": "set",
-      "name": "Siapin Pesan Alert",
+      "name": "Prepare Alert Message",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
@@ -128,7 +128,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -142,27 +142,27 @@
             },
             {
               "name": "message",
-              "value": "={{ $json.pesan }}"
+              "value": "={{ $json.message }}"
             }
           ]
         },
         "options": {}
       },
       "id": "tg",
-      "name": "Kirim Alert WhatsApp",
+      "name": "Send Alert WhatsApp",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
         1340,
         300
       ],
-      "notes": "Token Fonnte dari dashboard fonnte.com -> Device -> Token. Ganti GANTI_TOKEN_FONNTE.",
+      "notes": "Token Fonnte from dashboard fonnte.com -> Device -> Token. Ganti REPLACE_FONNTE_TOKEN.",
       "notesInFlow": false
     },
     {
       "parameters": {
         "respondWith": "text",
-        "responseBody": "=Alert terkirim untuk: {{ $json.produk }}",
+        "responseBody": "=Alert sent for: {{ $json.product }}",
         "options": {}
       },
       "id": "resp",
@@ -176,62 +176,62 @@
     }
   ],
   "connections": {
-    "Cek Stok Tiap Pagi": {
+    "Check Stock Every Morning": {
       "main": [
         [
           {
-            "node": "Ambil Data Stok",
+            "node": "Fetch Stock Data",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Ambil Data Stok": {
+    "Fetch Stock Data": {
       "main": [
         [
           {
-            "node": "Cek Per Produk",
+            "node": "Check Per Product",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Cek Per Produk": {
+    "Check Per Product": {
       "main": [
         [
           {
-            "node": "Stok Di Bawah Minimum?",
+            "node": "Stock Below Minimum?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Stok Di Bawah Minimum?": {
+    "Stock Below Minimum?": {
       "main": [
         [
           {
-            "node": "Siapin Pesan Alert",
+            "node": "Prepare Alert Message",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Siapin Pesan Alert": {
+    "Prepare Alert Message": {
       "main": [
         [
           {
-            "node": "Kirim Alert WhatsApp",
+            "node": "Send Alert WhatsApp",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Kirim Alert WhatsApp": {
+    "Send Alert WhatsApp": {
       "main": [
         [
           {

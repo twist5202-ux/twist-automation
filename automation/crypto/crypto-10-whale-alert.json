@@ -13,7 +13,7 @@
         }
       },
       "id": "n1",
-      "name": "Cek Tiap 15 Menit",
+      "name": "Check Every 15 Minutes",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.1,
       "position": [
@@ -23,11 +23,11 @@
     },
     {
       "parameters": {
-        "url": "https://api.bscscan.com/api?module=account&action=txlist&address=GANTI_ALAMAT_WALLET&sort=desc&apikey=GANTI_API_KEY_BSCSCAN",
+        "url": "https://api.bscscan.com/api?module=account&action=txlist&address=REPLACE_WALLET_ADDRESS&sort=desc&apikey=REPLACE_BSCSCAN_API_KEY",
         "options": {}
       },
       "id": "n2",
-      "name": "Ambil Transaksi Terbaru",
+      "name": "Fetch Latest Transactions",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
@@ -37,10 +37,10 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst d = $input.first().json;\nconst txs = d.result || [];\nconst besar = txs.filter(t => {\n  const nilai = Number(t.value) / 1e18;   // BNB\n  return nilai >= 10;                      // >= 10 BNB\n});\nreturn besar.map(t => ({\n  json: {\n    hash: t.hash,\n    dari: t.from,\n    ke: t.to,\n    nilai: (Number(t.value) / 1e18).toFixed(4),\n    waktu: new Date(t.timeStamp * 1000).toLocaleString('id')\n  }\n}));\n"
+        "jsCode": "\nconst d = $input.first().json;\nconst txs = d.result || [];\nconst large = txs.filter(t => {\n  const value = Number(t.value) / 1e18;   // BNB\n  return value >= 10;                      // >= 10 BNB\n});\nreturn large.map(t => ({\n  json: {\n    hash: t.hash,\n    from: t.from,\n    to: t.to,\n    value: (Number(t.value) / 1e18).toFixed(4),\n    time: new Date(t.timeStamp * 1000).toLocaleString('en-US')\n  }\n}));\n"
       },
       "id": "n3",
-      "name": "Filter Transfer Besar",
+      "name": "Filter Large Transfers",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -57,7 +57,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "GANTI_TOKEN_FONNTE"
+              "value": "REPLACE_FONNTE_TOKEN"
             }
           ]
         },
@@ -67,11 +67,11 @@
           "parameters": [
             {
               "name": "target",
-              "value": "GANTI_NOMOR_WA_ADMIN"
+              "value": "REPLACE_ADMIN_WHATSAPP_NUMBER"
             },
             {
               "name": "message",
-              "value": "🐋 WHALE ALERT\\n\\nNilai  : {{$json.nilai}} BNB\\nDari   : {{$json.dari}}\\nKe     : {{$json.ke}}\\nWaktu  : {{$json.waktu}}\\nTx     : bscscan.com/tx/{{$json.hash}}"
+              "value": "🐋 WHALE ALERT\\n\\nNilai  : {{$json.value}} BNB\\nDari   : {{$json.from}}\\nKe     : {{$json.ke}}\\nWaktu  : {{$json.time}}\\nTx     : bscscan.com/tx/{{$json.hash}}"
             }
           ]
         },
@@ -88,29 +88,29 @@
     }
   ],
   "connections": {
-    "Cek Tiap 15 Menit": {
+    "Check Every 15 Minutes": {
       "main": [
         [
           {
-            "node": "Ambil Transaksi Terbaru",
+            "node": "Fetch Latest Transactions",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Ambil Transaksi Terbaru": {
+    "Fetch Latest Transactions": {
       "main": [
         [
           {
-            "node": "Filter Transfer Besar",
+            "node": "Filter Large Transfers",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Filter Transfer Besar": {
+    "Filter Large Transfers": {
       "main": [
         [
           {
