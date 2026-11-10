@@ -1,123 +1,60 @@
-# Twist — Security Research Portfolio
+# TWIST Automation Studio
 
-Portofolio writeup penetration testing. Situs statis, dibangun dari markdown.
+Repository untuk website katalog automation dan kumpulan template workflow n8n, termasuk kebutuhan UMKM, customer support, crypto, konten, edukasi, dan event.
 
-**Isi:** halaman [portfolio & engagements](https://twist5202-ux.github.io/portfolio.html)
-(log kerja: submission, temuan yang ditahan, metode) + 4 writeup dari pengujian lab
-legal (OWASP Juice Shop) — SQLi, broken access control, DOM XSS, kriptografi, recon menyeluruh.
+## Website
 
----
+https://twist5202-ux.github.io/automation/
 
-## Struktur
+**Catatan:** alamat website publik tersebut dihosting melalui repo GitHub Pages. Perubahan di repo `twist-automation` belum tentu langsung terlihat di website publik sebelum kontennya disinkronkan ke repo yang melakukan deploy.
 
+## Struktur project
+
+```text
+twist-automation/
+├── index.html             # Landing page utama
+├── automation/
+│   ├── index.html         # Halaman katalog automation
+│   ├── umkm/              # Template UMKM
+│   ├── crypto/            # Template crypto
+│   ├── cs/                # Template customer service
+│   └── ...                # Kategori lainnya
+├── cs/                    # Halaman demo customer support
+├── demo/                  # Halaman demo
+├── fashion/               # Halaman terkait fashion
+├── harga/                 # Halaman harga
+├── n8n/                   # Materi dan dokumentasi n8n
+├── n8n-crypto/            # Koleksi workflow crypto lainnya
+├── build.py               # Script generator yang sudah ada
+├── README.md              # Dokumentasi English
+└── README-ID.md           # Dokumentasi Indonesia
 ```
-security-portfolio/
-├── build.py                        # generator: markdown → HTML
-├── PORTFOLIO-EN.md                 # sumber: halaman portfolio / engagements
-├── writeups-en/                    # sumber: markdown English (yang dipublikasikan)
-├── writeups/                       # arsip versi Indonesia
-│   ├── 001-juice-shop-sqli.md
-│   ├── 002-juice-shop-full-recon.md
-│   ├── 003-juice-shop-rsa-decrypt.md
-│   └── 004-juice-shop-broken-access-control-xss.md
-├── site/                           # HASIL build (yang dipublikasikan)
-│   ├── index.html
-│   ├── portfolio.html
-│   ├── assets/style.css
-│   ├── writeups/*.html
-│   └── .nojekyll
-└── .github/workflows/pages.yml     # auto-build + deploy ke GitHub Pages
-```
 
----
+## Cara melihat website secara lokal
 
-## Cara Pakai Lokal
+Jalankan perintah ini dari folder repository:
 
 ```bash
-# install
-python -m pip install markdown pygments
-
-# build
-python build.py
-
-# preview
-cd site && python -m http.server 8899
-# buka http://localhost:8899
+python -m http.server 8000
 ```
 
-Setiap kali markdown di `writeups-en/` atau `PORTFOLIO-EN.md` diubah, jalankan `python build.py` lagi.
-Metadata judul/severity diatur di dictionary `META` dalam `build.py`.
+Buka http://localhost:8000/ atau http://localhost:8000/automation/.
 
----
+## Cara menggunakan template n8n
 
-## Cara Publikasi ke GitHub Pages
+1. Pilih file workflow `.json` sesuai kebutuhan.
+2. Import ke aplikasi n8n.
+3. Periksa setiap node, credential, webhook, integrasi, dan nilai placeholder.
+4. Uji workflow sebelum mengaktifkannya.
 
-### Sekali setup (butuh login GitHub)
+Template mungkin memerlukan konfigurasi tambahan sebelum siap digunakan.
 
-```bash
-gh auth login                    # ikuti instruksi di layar
+## Penting sebelum merapikan struktur
 
-cd security-portfolio
-git add -A
-git commit -m "feat: portofolio writeup keamanan"
+- Jangan langsung menghapus direktori yang mirip atau memindahkan file tanpa mengecek semua link.
+- Perubahan CSS dan JavaScript perlu dites karena sebagian masih berada di file HTML.
+- Sinkronisasi ke repo GitHub Pages perlu dikelola secara terpisah.
+- Jangan simpan API key, token bot, atau credential aktif di repository.
+- Pastikan tampilan dan animasi tetap normal di desktop maupun HP.
 
-# opsi A — repo biasa (Pages aktif di /docs atau via Actions)
-gh repo create security-writeups --public --source=. --push
-
-# opsi B — repo user (langsung jadi <user>.github.io)
-gh repo create <USERNAME>.github.io --public --source=. --push
-```
-
-### Aktifkan Pages
-
-```bash
-# via CLI
-gh api -X POST "repos/{owner}/security-writeups/pages" \
-  -f "source[branch]=main" -f "source[path]=/site" 2>/dev/null \
-  || echo "atau aktifkan manual: Settings → Pages"
-
-# atau manual di web:
-#   Settings → Pages → Source: GitHub Actions
-```
-
-Workflow `.github/workflows/pages.yml` akan otomatis
-build + deploy setiap push ke `main`.
-
-### URL hasil
-
-```
-https://<USERNAME>.github.io/security-writeups/
-```
-atau kalau pakai repo user:
-```
-https://<USERNAME>.github.io/
-```
-
----
-
-## Alternatif Tanpa GitHub
-
-Kalau gak mau pakai GitHub, folder `site/` bisa di-upload ke:
-
-| Layanan | Cara |
-|---|---|
-| Netlify | drag & drop folder `site/` ke app.netlify.com/drop |
-| Cloudflare Pages | sambungkan repo, build command `python build.py`, output `site` |
-| Vercel | `vercel deploy site` |
-| Surge | `npx surge site` |
-
-Semua opsi di atas gratis dan gak perlu kartu kredit.
-
----
-
-## Catatan Etika
-
-Semua pengujian dilakukan di **lab legal** (OWASP Juice Shop — aplikasi
-latihan resmi OWASP yang memang dibuat rentan). Tidak ada sistem pihak
-ketiga yang diuji tanpa izin.
-
----
-
-## Lisensi
-
-Konten writeup: CC BY 4.0. Kode `build.py`: MIT.
+Dokumentasi security research berada di repository [security-writeups](https://github.com/twist5202-ux/security-writeups).
