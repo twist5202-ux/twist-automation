@@ -1,3 +1,18 @@
 __pycache__/
 *.pyc
 .md_build/
+
+# Local editor and OS files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Local dependencies and logs
+node_modules/
+*.log
+
+# Private environment files (never commit API keys)
+.env
+.env.*
+!.env.example
