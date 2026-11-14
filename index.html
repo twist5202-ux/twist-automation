@@ -103,58 +103,6 @@ footer a:hover{color:var(--gold)}
   .card p,.stat .l{color:#444}
 }
 
-/* Interactive automation showcase */
-.tw-demo{margin:0 auto 20px;border:1px solid var(--line2);border-radius:20px;overflow:hidden;background:#0d121b;box-shadow:0 22px 60px rgba(0,0,0,.16)}
-.tw-demo-head{text-align:center;padding:28px 20px;border-bottom:1px solid var(--line);background:radial-gradient(ellipse at top,rgba(232,179,57,.11),transparent 72%)}
-.tw-demo-head .k{font:11px var(--mono);letter-spacing:2px;color:var(--gold)}
-.tw-demo-head h2{font-size:clamp(23px,4vw,34px);line-height:1.2;margin:8px 0}
-.tw-demo-head p{font-size:13px;color:var(--dim)}
-.tw-demo-grid{display:grid;grid-template-columns:minmax(225px,33%) minmax(0,1fr)}
-.tw-demo-picker{padding:22px;border-right:1px solid var(--line)}
-.tw-demo-label{font:11px var(--mono);color:var(--dim);letter-spacing:1px}
-#tw-demo-select{appearance:auto;width:100%;padding:13px;margin:14px 0;background:var(--card);border:1px solid var(--line2);border-radius:9px;color:var(--txt);font:13px var(--sans)}
-#tw-demo-select:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
-.tw-demo-filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:19px}
-.tw-demo-filters button{padding:6px 10px;border:1px solid var(--line2);border-radius:20px;color:var(--dim);background:transparent;cursor:pointer;font-size:11px}
-.tw-demo-filters button.on{border-color:var(--gold);background:rgba(232,179,57,.12);color:var(--gold)}
-#tw-demo-run{width:100%;background:var(--gold);color:#10120d;border:0;border-radius:10px;padding:12px 16px;font-weight:750;cursor:pointer}
-#tw-demo-run:disabled{opacity:.55;cursor:default}
-.tw-demo-note{font-size:11px;color:var(--dim);margin-top:12px}
-.tw-demo-view{min-width:0;padding:20px;background:#090d13}
-.tw-demo-terminal{display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--line);padding-bottom:12px}
-.tw-demo-terminal i{width:8px;height:8px;border-radius:50%;background:#ed6a5e}
-.tw-demo-terminal i:nth-child(2){background:#f4bf50}.tw-demo-terminal i:nth-child(3){background:#45c78a}
-.tw-demo-terminal span{font:10px var(--mono);color:var(--dim);margin-left:8px}
-.tw-demo-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:16px 0}
-.tw-demo-ready{color:#42d7a3;font:10px var(--mono)}.tw-demo-ready:before{content:'● ';animation:tw-demo-blink 1.5s infinite}
-#tw-demo-title{font-weight:750;font-size:17px}#tw-demo-desc{color:var(--dim);font-size:12px;margin-top:4px}
-.tw-demo-nodes{display:flex;align-items:center;gap:4px;margin:24px 0}
-.tw-demo-node{flex:1;min-width:0;border:1px solid var(--line2);border-radius:11px;text-align:center;padding:13px 4px;background:var(--card);transition:.3s}
-.tw-demo-node.active{border-color:var(--gold);background:rgba(232,179,57,.12);box-shadow:0 0 20px rgba(232,179,57,.12)}
-.tw-demo-icon{display:block;font-size:21px}.tw-demo-node-name{display:block;font-size:11px;font-weight:700;margin-top:7px;overflow-wrap:anywhere}
-.tw-demo-wire{height:2px;flex:0 0 8%;position:relative;background:var(--line2)}
-.tw-demo-wire:after{content:'';position:absolute;width:7px;height:7px;top:-3px;background:var(--gold);border-radius:50%;box-shadow:0 0 8px var(--gold);animation:tw-demo-travel 1.6s linear infinite}
-.tw-demo-wire.delay:after{animation-delay:.8s}
-#tw-demo-log{border:1px solid var(--line);border-radius:9px;background:#070a0f;min-height:110px;padding:13px;font:11px/1.9 var(--mono);color:var(--dim)}
-#tw-demo-log .success{color:#3bdda6}
-.tw-demo-monitor{border-top:1px solid var(--line);margin-top:16px;padding-top:13px}
-.tw-demo-monitor-head{display:flex;justify-content:space-between;gap:8px;color:var(--dim);font:10px var(--mono)}
-.tw-demo-monitor-head b{color:var(--txt);font-weight:500}
-.tw-demo-workers{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:12px 0}
-.tw-demo-worker{border:1px solid #33383d;border-radius:10px;background:#101317;padding:9px 8px;min-width:0;transition:.3s}
-.tw-demo-worker.running{border-color:#087c61;background:#09201b}
-.tw-demo-worker-name{font:10px var(--mono);color:var(--dim)}
-.tw-demo-worker-status{font-size:11px;color:#7e838b;font-weight:650;margin-top:5px}
-.tw-demo-worker-status:before{content:'● ';font-size:9px}
-.tw-demo-worker.running .tw-demo-worker-status{color:#29d3a1}
-.tw-demo-worker.running .tw-demo-worker-status:before{animation:tw-demo-blink 1.3s infinite}
-.tw-demo-track{height:5px;border-radius:8px;background:#20252d;overflow:hidden}
-#tw-demo-progress{width:0;height:100%;background:linear-gradient(90deg,#00aa81,var(--gold));transition:width .4s}
-@keyframes tw-demo-blink{50%{opacity:.4}}
-@keyframes tw-demo-travel{0%{left:0;opacity:0}15%,85%{opacity:1}100%{left:calc(100% - 7px);opacity:0}}
-@media(max-width:650px){.tw-demo-grid{grid-template-columns:1fr}.tw-demo-picker{border-right:0;border-bottom:1px solid var(--line);padding:17px}.tw-demo-view{padding:16px}.tw-demo-workers{gap:5px}.tw-demo-worker{padding:8px 5px}.tw-demo-worker-name,.tw-demo-worker-status{font-size:9px}}
-@media(prefers-reduced-motion:reduce){.tw-demo-wire:after,.tw-demo-ready:before,.tw-demo-worker-status:before{animation:none}}
-
 </style>
 </head>
 <body>
@@ -195,46 +143,6 @@ footer a:hover{color:var(--gold)}
       <div class="stat rv"><span class="n">24/7</span><span class="l">Jalan Otomatis</span></div>
     </div>
   </div>
-</section>
-
-<section id="workflow-preview" aria-label="Simulasi automation interaktif">
- <div class="wrap">
-  <div class="tw-demo rv">
-   <div class="tw-demo-head"><div class="k">// INTERACTIVE AUTOMATION</div><h2>Work less. <span style="color:var(--gold)">Automate more.</span></h2><p>Pilih workflow dan lihat cara automation bekerja secara interaktif.</p></div>
-   <div class="tw-demo-grid">
-    <div class="tw-demo-picker">
-     <label class="tw-demo-label" for="tw-demo-select">SELECT YOUR AUTOMATION</label>
-     <select id="tw-demo-select"></select>
-     <div class="tw-demo-filters" aria-label="Kategori automation"><button type="button" class="on" data-cat="all">All</button><button type="button" data-cat="ai">AI & Bots</button><button type="button" data-cat="sales">Sales</button><button type="button" data-cat="business">Business</button></div>
-     <button type="button" id="tw-demo-run">▶ Run Simulation</button>
-     <p class="tw-demo-note">Demo visual saja — tidak mengirim pesan atau menjalankan n8n asli.</p>
-    </div>
-    <div class="tw-demo-view">
-     <div class="tw-demo-terminal"><i></i><i></i><i></i><span>twist@automation : workflow-engine</span></div>
-     <div class="tw-demo-top"><span class="tw-demo-label">WORKFLOW PREVIEW</span><span class="tw-demo-ready">DEMO READY</span></div>
-     <div id="tw-demo-title">AI Agent Assistant</div><div id="tw-demo-desc">Trigger → AI Agent → Reply</div>
-     <div class="tw-demo-nodes">
-      <div class="tw-demo-node"><span class="tw-demo-icon">⚡</span><span class="tw-demo-node-name">Trigger</span></div>
-      <div class="tw-demo-wire"></div>
-      <div class="tw-demo-node"><span class="tw-demo-icon">🧠</span><span class="tw-demo-node-name">AI Agent</span></div>
-      <div class="tw-demo-wire delay"></div>
-      <div class="tw-demo-node"><span class="tw-demo-icon">💬</span><span class="tw-demo-node-name">Reply</span></div>
-     </div>
-     <div id="tw-demo-log" role="status" aria-live="polite">&gt; Automation ready</div>
-     <div class="tw-demo-monitor">
-      <div class="tw-demo-monitor-head"><span id="tw-demo-process">automation · AI Agent</span><b id="tw-demo-rate">0 executions</b></div>
-      <div class="tw-demo-workers">
-       <div class="tw-demo-worker"><div class="tw-demo-worker-name">worker-1</div><div class="tw-demo-worker-status">idle</div></div>
-       <div class="tw-demo-worker"><div class="tw-demo-worker-name">worker-2</div><div class="tw-demo-worker-status">idle</div></div>
-       <div class="tw-demo-worker"><div class="tw-demo-worker-name">worker-3</div><div class="tw-demo-worker-status">idle</div></div>
-       <div class="tw-demo-worker"><div class="tw-demo-worker-name">worker-4</div><div class="tw-demo-worker-status">idle</div></div>
-      </div>
-      <div class="tw-demo-track"><div id="tw-demo-progress"></div></div>
-     </div>
-    </div>
-   </div>
-  </div>
- </div>
 </section>
 
 <section>
@@ -375,34 +283,6 @@ var cio=new IntersectionObserver(function(es){
 },{threshold:.5});
 document.querySelectorAll('[data-count]').forEach(function(el){cio.observe(el);});
 
-})();
-
-/* Interactive automation showcase */
-(function(){
- var box=document.getElementById('workflow-preview');if(!box)return;
- var flows=[
- ['agent','🧠 AI Agent','ai','AI Agent Assistant','Trigger → Reason → Reply',[['⚡','Trigger'],['🧠','AI Agent'],['💬','Reply']]],
- ['wa','💬 WhatsApp CS','ai','WhatsApp AI Customer Service','Message → AI → Reply',[['💬','Message'],['🧠','AI Agent'],['✅','Reply']]],
- ['telegram','🤖 Telegram Bot','ai','Telegram AI Bot','Command → AI → Bot',[['✈️','Telegram'],['🧠','AI Logic'],['🤖','Bot']]],
- ['lead','🎯 Lead Capture','sales','Automated Lead Capture','Form → Qualification → CRM',[['📝','Form'],['🎯','Qualify'],['🗃️','CRM']]],
- ['email','📨 Email Marketing','sales','Email Marketing','Audience → Copy → Campaign',[['👥','Audience'],['✨','AI Copy'],['📨','Email']]],
- ['follow','🔔 Auto Follow-up','sales','Customer Follow-up','Customer → Schedule → Reminder',[['👤','Customer'],['⏰','Schedule'],['🔔','Notify']]],
- ['order','📦 Order Processing','sales','Order Processing','Checkout → Validate → Fulfill',[['🛒','Checkout'],['✅','Validate'],['📦','Fulfill']]],
- ['review','⭐ Review Request','sales','Review Request','Completed Order → Feedback → Review',[['✅','Complete'],['💌','Feedback'],['⭐','Review']]],
- ['invoice','🧾 Auto Invoice','business','Automatic Invoice','Order → Invoice → Email',[['🛒','Order'],['🧾','Invoice'],['📧','Email']]],
- ['report','📊 Smart Report','business','Business Reporting','Data → Analyze → Report',[['📂','Data'],['⚙️','Analyze'],['📈','Report']]],
- ['social','📱 Social Media','business','Social Media Automation','Content → AI Caption → Schedule',[['🖼️','Content'],['✍️','Caption'],['📅','Schedule']]],
- ['sync','🔄 Data Sync','business','Data Synchronization','Source → Transform → Sync',[['☁️','Source'],['⚙️','Transform'],['🔄','Sync']]]
- ];
- var q=function(sel){return box.querySelector(sel)},sel=q('#tw-demo-select'),btn=q('#tw-demo-run'),log=q('#tw-demo-log'),nodes=[].slice.call(box.querySelectorAll('.tw-demo-node')),workers=[].slice.call(box.querySelectorAll('.tw-demo-worker')),progress=q('#tw-demo-progress'),count=0,token=0,active=flows[0];
- function write(msg,good){var d=document.createElement('div');d.textContent=msg;if(good)d.className='success';log.appendChild(d)}
- function setWorkers(n){workers.forEach(function(w,i){var on=i<n;w.classList.toggle('running',on);w.querySelector('.tw-demo-worker-status').textContent=on?'running':'idle'})}
- function show(){token++;active=flows.find(function(f){return f[0]===sel.value})||flows[0];q('#tw-demo-title').textContent=active[3];q('#tw-demo-desc').textContent=active[4];q('#tw-demo-process').textContent='automation · '+active[3];nodes.forEach(function(n,i){n.classList.remove('active');n.querySelector('.tw-demo-icon').textContent=active[5][i][0];n.querySelector('.tw-demo-node-name').textContent=active[5][i][1]});setWorkers(0);progress.style.width='0%';log.replaceChildren();write('> '+active[3]+' initialized');write('✓ Ready to simulate',true);btn.disabled=false;btn.textContent='▶ Run Simulation'}
- function filter(cat){sel.replaceChildren();flows.filter(function(f){return cat==='all'||f[2]===cat}).forEach(function(f){var o=document.createElement('option');o.value=f[0];o.textContent=f[1];sel.appendChild(o)});show()}
- box.querySelectorAll('[data-cat]').forEach(function(b){b.addEventListener('click',function(){box.querySelectorAll('[data-cat]').forEach(function(x){x.classList.toggle('on',x===b)});filter(b.dataset.cat)})});
- sel.addEventListener('change',show);
- btn.addEventListener('click',async function(){var id=++token,flow=active;btn.disabled=true;btn.textContent='● Running';nodes.forEach(function(n){n.classList.remove('active')});setWorkers(1);progress.style.width='0%';log.replaceChildren();write('> Starting '+flow[3]);for(var i=0;i<3;i++){await new Promise(function(r){setTimeout(r,650)});if(id!==token)return;nodes[i].classList.add('active');setWorkers(i===0?1:2);progress.style.width=((i+1)*100/3)+'%';write('✓ '+flow[5][i][1]+' completed',i===2)}await new Promise(function(r){setTimeout(r,350)});if(id!==token)return;count++;q('#tw-demo-rate').textContent=count+' execution'+(count===1?'':'s');write('✓ Simulation completed',true);setWorkers(0);btn.disabled=false;btn.textContent='↻ Run Again'});
- filter('all');
 })();
 
 </script>
